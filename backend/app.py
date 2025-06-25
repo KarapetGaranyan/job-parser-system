@@ -198,5 +198,38 @@ def search_all():
     sj_vacancies = parse_superjob(vacancy)
     return jsonify({'vacancies': hh_vacancies + sj_vacancies})
 
+@app.route('/api/vacancies', methods=['GET'])
+def get_vacancies():
+    session = Session()
+    vacancies = session.query(Vacancy).all()
+    result = []
+    for v in vacancies:
+        result.append({
+            'title': v.title,
+            'link': v.link,
+            'company': v.company,
+            'salary': v.salary,
+            'source': v.source
+        })
+    session.close()
+    return jsonify({'vacancies': result})
+
+@app.route('/vacancies_text', methods=['GET'])
+def vacancies_text():
+    session = Session()
+    vacancies = session.query(Vacancy).all()
+    lines = []
+    for v in vacancies:
+        lines.append(
+            f"Вакансия: {v.title}\n"
+            f"Компания: {v.company}\n"
+            f"Зарплата: {v.salary}\n"
+            f"Ссылка: {v.link}\n"
+            f"Источник: {v.source}\n"
+            "-----------------------------"
+        )
+    session.close()
+    return "<pre>" + "\n".join(lines) + "</pre>"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
