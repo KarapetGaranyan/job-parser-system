@@ -6,6 +6,12 @@ import requests as ext_requests
 from bs4 import BeautifulSoup
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.orm import declarative_base, sessionmaker
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+import time
 
 load_dotenv()
 
@@ -114,36 +120,50 @@ def hh_search():
 
     return jsonify({'vacancies': vacancies})
 
-def parse_superjob(vacancy):
-    url = f'https://www.superjob.ru/vacancy/search/?keywords={vacancy}'
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    try:
-        response = ext_requests.get(url, headers=headers, timeout=7)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        vacancies = []
-        for item in soup.find_all('div', attrs={'class': 'f-test-vacancy-item'}):
-            title_tag = item.find('a', attrs={'target': '_blank'})
-            if not title_tag:
-                continue
-            title = title_tag.text.strip()
-            link = 'https://www.superjob.ru' + title_tag['href']
-            company_tag = item.find('span', attrs={'class': 'f-test-text-vacancy-item-company-name'})
-            company = company_tag.text.strip() if company_tag else ''
-            salary_tag = item.find('span', attrs={'class': 'f-test-text-company-item-salary'})
-            salary = salary_tag.text.strip() if salary_tag else 'Зарплата не указана'
-            vac = {
-                'title': title,
-                'link': link,
-                'company': company,
-                'salary': salary,
-                'source': 'superjob'
-            }
-            vacancies.append(vac)
-            save_vacancy_to_db(vac)
-        return vacancies
-    except Exception as e:
-        print(f'Ошибка при парсинге SuperJob: {e}')
-        return []
+def get_superjob_vacancies(search_word, vacancies_count=20):
+    url = 'https://api.superjob.ru/2.0/vacancies'
+    secret = 'v3.r.137222938.adcc1bf5602cc5a2c697d63eb9c580dd5029f96f.049aae965267ebe71bbc7c587187da62cdbc560e'
+    per_page = 20
+    page = 0
+    result = []
+    headers = {
+        'X-Api-App-Id': secret,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    while per_page * page < vacancies_count:
+        params = {
+            'keyword': search_word,
+            'page': page,
+            'count': per_page
+        }
+        response = ext_requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            for obj in data.get('objects', []):
+                salary = ''
+                if obj.get('payment_from', 0) and obj.get('payment_to', 0):
+                    salary = f"{obj['payment_from']} - {obj['payment_to']} {obj.get('currency', '')}"
+                elif obj.get('payment_from', 0):
+                    salary = f"от {obj['payment_from']} {obj.get('currency', '')}"
+                elif obj.get('payment_to', 0):
+                    salary = f"до {obj['payment_to']} {obj.get('currency', '')}"
+                else:
+                    salary = 'Зарплата не указана'
+                vac = {
+                    'title': obj.get('profession', ''),
+                    'link': obj.get('link', ''),
+                    'company': obj.get('firm_name', ''),
+                    'salary': salary,
+                    'source': 'superjob'
+                }
+                result.append(vac)
+                save_vacancy_to_db(vac)
+            if not data.get('more', False):
+                break
+            page += 1
+        else:
+            break
+    return result
 
 @app.route('/api/search_all', methods=['POST'])
 def search_all():
@@ -194,8 +214,8 @@ def search_all():
         hh_vacancies.append(vac)
         save_vacancy_to_db(vac)
 
-    # SuperJob
-    sj_vacancies = parse_superjob(vacancy)
+    # SuperJob через API
+    sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=20)
     return jsonify({'vacancies': hh_vacancies + sj_vacancies})
 
 @app.route('/api/vacancies', methods=['GET'])
