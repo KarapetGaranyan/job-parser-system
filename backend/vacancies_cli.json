@@ -68,5 +68,40 @@
     "company": "АО Азиатско-Тихоокеанский Банк",
     "salary": "Зарплата не указана",
     "source": "hh"
+  },
+  {
+    "title": "DevOps Setka",
+    "link": "https://hh.ru/vacancy/120775008?query=Python&hhtmFrom=vacancy_search_list",
+    "company": "ООО HeadHunter::Infrastructure engineers",
+    "salary": "Зарплата не указана",
+    "source": "hh"
+  },
+  {
+    "title": "Стажёр — менеджер продукта",
+    "link": "https://hh.ru/vacancy/121950103?query=Python&hhtmFrom=vacancy_search_list",
+    "company": "VK, VK Tech",
+    "salary": "Зарплата не указана",
+    "source": "hh"
+  },
+  {
+    "title": "Старший консультант отдела бизнес-анализа",
+    "link": "https://hh.ru/vacancy/122011928?query=Python&hhtmFrom=vacancy_search_list",
+    "company": "ПАО Аэрофлот",
+    "salary": "Зарплата не указана",
+    "source": "hh"
+  },
+  {
+    "title": "QA-Engineer/Тестировщик",
+    "link": "https://hh.ru/vacancy/122059966?query=Python&hhtmFrom=vacancy_search_list",
+    "company": "ООО Технологии управления персоналом",
+    "salary": "Зарплата не указана",
+    "source": "hh"
+  },
+  {
+    "title": "Python-разработчик",
+    "link": "https://hh.ru/vacancy/122070454?query=Python&hhtmFrom=vacancy_search_list",
+    "company": "ООО Эвокарго",
+    "salary": "Зарплата не указана",
+    "source": "hh"
   }
 ]

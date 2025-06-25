@@ -319,17 +319,20 @@ def export_csv():
         headers={'Content-Disposition': 'attachment;filename=vacancies.csv'}
     )
 
-def background_parse(task_id, vacancy, site, count, sort):
+def background_parse(task_id, vacancy, site, count, sort, exclude_links=None, page=1):
     try:
         results = []
+        exclude_links = set(exclude_links or [])
+        page = int(page) if page else 1
+        count = int(count)
         if site == 'hh':
             hh_vacancies = []
-            seen_links = set()
-            page = 0
+            seen_links = set(exclude_links)
+            page_num = 0
             headers = {'User-Agent': 'Mozilla/5.0'}
             max_pages = 20
-            while page < max_pages and len(hh_vacancies) < count:
-                url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1&page={page}'
+            while page_num < max_pages and len(hh_vacancies) < page*count+len(exclude_links):
+                url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1&page={page_num}'
                 response = ext_requests.get(url, headers=headers)
                 if response.status_code != 200:
                     break
@@ -338,8 +341,6 @@ def background_parse(task_id, vacancy, site, count, sort):
                 if not items:
                     break
                 for item in items:
-                    if len(hh_vacancies) >= count:
-                        break
                     title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
                     if not title_tag:
                         title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
@@ -377,11 +378,87 @@ def background_parse(task_id, vacancy, site, count, sort):
                     }
                     hh_vacancies.append(vac)
                     save_vacancy_to_db(vac)
-                page += 1
-            results = hh_vacancies[:count]
+                page_num += 1
+            filtered = [v for v in hh_vacancies if v['link'] not in exclude_links]
+            total = len(filtered)
+            total_pages = max(1, (total + count - 1) // count)
+            start = (page-1)*count
+            end = start+count
+            results = filtered[start:end]
         elif site == 'superjob':
-            sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=count)
-            results = sj_vacancies[:count]
+            sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=page*count+len(exclude_links))
+            filtered = [v for v in sj_vacancies if v['link'] not in exclude_links]
+            total = len(filtered)
+            total_pages = max(1, (total + count - 1) // count)
+            start = (page-1)*count
+            end = start+count
+            results = filtered[start:end]
+        elif site == 'all':
+            hh_vacancies = []
+            sj_vacancies = []
+            seen_links = set(exclude_links)
+            # HH
+            page_num = 0
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            max_pages = 20
+            while page_num < max_pages and len(hh_vacancies) < page*count*2:
+                url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1&page={page_num}'
+                response = ext_requests.get(url, headers=headers)
+                if response.status_code != 200:
+                    break
+                soup = BeautifulSoup(response.text, 'html.parser')
+                items = soup.find_all('div', attrs={'data-qa': 'vacancy-serp__vacancy'})
+                if not items:
+                    break
+                for item in items:
+                    title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
+                    if not title_tag:
+                        title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
+                    if not title_tag:
+                        continue
+                    title = title_tag.text.strip()
+                    link = title_tag['href']
+                    if link in seen_links:
+                        continue
+                    seen_links.add(link)
+                    company_tag = item.find('a', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+                    if not company_tag:
+                        company_tag = item.find('div', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+                    company = company_tag.text.strip() if company_tag else ''
+                    salary_tag = item.find('span', attrs={'data-qa': 'vacancy-serp__vacancy-compensation'})
+                    if not salary_tag:
+                        salary_tag = item.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                    salary = salary_tag.text.strip() if salary_tag else ''
+                    if not salary:
+                        try:
+                            detail_resp = ext_requests.get(link, headers=headers, timeout=5)
+                            if detail_resp.status_code == 200:
+                                detail_soup = BeautifulSoup(detail_resp.text, 'html.parser')
+                                salary_detail = detail_soup.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                                if salary_detail:
+                                    salary = salary_detail.text.strip()
+                        except Exception as e:
+                            salary = ''
+                    vac = {
+                        'title': title,
+                        'link': link,
+                        'company': company,
+                        'salary': salary if salary else 'Зарплата не указана',
+                        'source': 'hh'
+                    }
+                    hh_vacancies.append(vac)
+                    save_vacancy_to_db(vac)
+                page_num += 1
+            # SuperJob
+            sj_all = get_superjob_vacancies(vacancy, vacancies_count=page*count*2+len(seen_links))
+            sj_vacancies = [v for v in sj_all if v['link'] not in seen_links]
+            all_vacancies = hh_vacancies + sj_vacancies
+            filtered = [v for v in all_vacancies if v['link'] not in exclude_links]
+            total = len(filtered)
+            total_pages = max(1, (total + count - 1) // count)
+            start = (page-1)*count
+            end = start+count
+            results = filtered[start:end]
         else:
             tasks[task_id] = {'status': 'error', 'error': 'Неизвестный сайт'}
             return
@@ -392,7 +469,7 @@ def background_parse(task_id, vacancy, site, count, sort):
                 except:
                     return 0
             results = sorted(results, key=lambda v: salary_to_int(v['salary']), reverse=True)
-        tasks[task_id] = {'status': 'done', 'result': results}
+        tasks[task_id] = {'status': 'done', 'result': {'vacancies': results, 'total_pages': total_pages}}
     except Exception as e:
         tasks[task_id] = {'status': 'error', 'error': str(e)}
 
@@ -403,9 +480,11 @@ def async_search():
     site = data.get('site', 'hh')
     count = int(data.get('count', 20))
     sort = data.get('sort', 'no')
+    exclude_links = data.get('exclude_links', [])
+    page = int(data.get('page', 1))
     task_id = str(uuid.uuid4())
     tasks[task_id] = {'status': 'running'}
-    thread = threading.Thread(target=background_parse, args=(task_id, vacancy, site, count, sort))
+    thread = threading.Thread(target=background_parse, args=(task_id, vacancy, site, count, sort, exclude_links, page))
     thread.start()
     return jsonify({'task_id': task_id})
 
