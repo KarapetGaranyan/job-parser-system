@@ -16,34 +16,95 @@
         <hr>
         <h2>Поиск вакансий </h2>
         <form id="searchForm">
+            <div style="margin-bottom: 8px;">
+                <label>Выберите сайт для поиска:</label><br>
+                <input type="radio" id="hh" name="site" value="hh" checked>
+                <label for="hh">HH.ru</label>
+                <input type="radio" id="superjob" name="site" value="superjob">
+                <label for="superjob">SuperJob</label>
+            </div>
             <input type="text" id="vacancy" placeholder="Введите вакансию" required>
+            <input type="number" id="count" placeholder="Количество вакансий" min="1" max="100" value="20" style="width: 160px;">
+            <div style="margin: 8px 0;">
+                <label>Сортировать по зарплате?</label>
+                <input type="radio" id="sort_yes" name="sort" value="yes">
+                <label for="sort_yes">Да</label>
+                <input type="radio" id="sort_no" name="sort" value="no" checked>
+                <label for="sort_no">Нет</label>
+            </div>
             <button type="submit">Поиск</button>
         </form>
+        <button id="exportBtn" style="margin-top: 10px;">Экспорт в CSV</button>
         <div id="results"></div>
+        <div id="loading" style="display:none; color: #007bff; font-weight: bold;">Загрузка, пожалуйста, подождите...</div>
         <script>
+        let lastResults = [];
+        let pollInterval = null;
         document.getElementById('searchForm').onsubmit = async function(e) {
             e.preventDefault();
+            const site = document.querySelector('input[name="site"]:checked').value;
             const vacancy = document.getElementById('vacancy').value;
-            const response = await fetch('/api/hh_search', {
+            const count = parseInt(document.getElementById('count').value) || 20;
+            const sort = document.querySelector('input[name="sort"]:checked').value;
+            document.getElementById('results').innerHTML = '';
+            lastResults = [];
+            document.getElementById('loading').style.display = 'block';
+            // Запускаем асинхронный поиск
+            const resp = await fetch('http://127.0.0.1:5000/api/async_search', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({vacancy})
+                body: JSON.stringify({vacancy, site, count, sort})
             });
-            const data = await response.json();
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-            if (data.vacancies && data.vacancies.length > 0) {
-                data.vacancies.forEach(v => {
-                    let source = v.source === 'hh' ? 'HH.ru' : (v.source === 'superjob' ? 'SuperJob' : '');
-                    resultsDiv.innerHTML += `<div style='margin-bottom:10px;'>
-                        <a href="${v.link}" target="_blank"><b>${v.title}</b></a> <span style='color: #888;'>(${source})</span><br>
-                        <span>${v.company}</span><br>
-                        <span>${v.salary ? v.salary : 'Зарплата не указана'}</span>
-                    </div><hr>`;
-                });
-            } else {
-                resultsDiv.innerHTML = data.error || 'Нет результатов';
+            const {task_id} = await resp.json();
+            // Периодически опрашиваем статус
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(async () => {
+                const statusResp = await fetch(`http://127.0.0.1:5000/api/async_status/${task_id}`);
+                const statusData = await statusResp.json();
+                if (statusData.status === 'done') {
+                    clearInterval(pollInterval);
+                    lastResults = statusData.result || [];
+                    document.getElementById('loading').style.display = 'none';
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+                    if (lastResults.length > 0) {
+                        lastResults.forEach(v => {
+                            let source = v.source === 'hh' ? 'HH.ru' : (v.source === 'superjob' ? 'SuperJob' : '');
+                            resultsDiv.innerHTML += `<div style='margin-bottom:10px;'>
+                                <a href="${v.link}" target="_blank"><b>${v.title}</b></a> <span style='color: #888;'>(${source})</span><br>
+                                <span>${v.company}</span><br>
+                                <span>${v.salary ? v.salary : 'Зарплата не указана'}</span>
+                            </div><hr>`;
+                        });
+                    } else {
+                        resultsDiv.innerHTML = 'Нет результатов';
+                    }
+                } else if (statusData.status === 'error') {
+                    clearInterval(pollInterval);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('results').innerHTML = statusData.error || 'Ошибка при поиске';
+                }
+            }, 2000);
+        };
+        document.getElementById('exportBtn').onclick = function() {
+            if (!lastResults.length) {
+                alert('Нет данных для экспорта! Сначала выполните поиск.');
+                return;
             }
+            let csv = '\uFEFFtitle,company,salary,link,source\n';
+            lastResults.forEach(v => {
+                csv += `"${v.title.replace(/"/g, '""')}","${v.company.replace(/"/g, '""')}","${v.salary.replace(/"/g, '""')}","${v.link}","${v.source}"
+`;
+            });
+            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'vacancies.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         };
         </script>
     </div>
