@@ -22,6 +22,8 @@
                 <label for="hh">HH.ru</label>
                 <input type="radio" id="superjob" name="site" value="superjob">
                 <label for="superjob">SuperJob</label>
+                <input type="radio" id="all_sites" name="site" value="all">
+                <label for="all_sites">Оба сайта</label>
             </div>
             <input type="text" id="vacancy" placeholder="Введите вакансию" required>
             <input type="number" id="count" placeholder="Количество вакансий" min="1" max="100" value="20" style="width: 160px;">
@@ -35,56 +37,104 @@
             <button type="submit">Поиск</button>
         </form>
         <button id="exportBtn" style="margin-top: 10px;">Экспорт в CSV</button>
+        <button id="loadMoreBtn" style="margin-top: 10px; display:none;">Показать следующие</button>
         <div id="results"></div>
+        <div id="pagination" style="margin-top:20px;"></div>
         <div id="loading" style="display:none; color: #007bff; font-weight: bold;">Загрузка, пожалуйста, подождите...</div>
         <script>
         let lastResults = [];
+        let shownLinks = new Set();
         let pollInterval = null;
-        document.getElementById('searchForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const site = document.querySelector('input[name="site"]:checked').value;
-            const vacancy = document.getElementById('vacancy').value;
-            const count = parseInt(document.getElementById('count').value) || 20;
-            const sort = document.querySelector('input[name="sort"]:checked').value;
-            document.getElementById('results').innerHTML = '';
-            lastResults = [];
+        let currentParams = {};
+        let loading = false;
+        let currentPage = 1;
+        let totalPages = 1;
+        let pageSize = 8;
+        async function loadVacancies(params, page=1) {
             document.getElementById('loading').style.display = 'block';
-            // Запускаем асинхронный поиск
+            loading = true;
+            params.page = page;
+            params.count = pageSize;
             const resp = await fetch('http://127.0.0.1:5000/api/async_search', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({vacancy, site, count, sort})
+                body: JSON.stringify(params)
             });
             const {task_id} = await resp.json();
-            // Периодически опрашиваем статус
             if (pollInterval) clearInterval(pollInterval);
             pollInterval = setInterval(async () => {
                 const statusResp = await fetch(`http://127.0.0.1:5000/api/async_status/${task_id}`);
                 const statusData = await statusResp.json();
                 if (statusData.status === 'done') {
                     clearInterval(pollInterval);
-                    lastResults = statusData.result || [];
                     document.getElementById('loading').style.display = 'none';
-                    const resultsDiv = document.getElementById('results');
-                    resultsDiv.innerHTML = '';
-                    if (lastResults.length > 0) {
-                        lastResults.forEach(v => {
-                            let source = v.source === 'hh' ? 'HH.ru' : (v.source === 'superjob' ? 'SuperJob' : '');
-                            resultsDiv.innerHTML += `<div style='margin-bottom:10px;'>
-                                <a href="${v.link}" target="_blank"><b>${v.title}</b></a> <span style='color: #888;'>(${source})</span><br>
-                                <span>${v.company}</span><br>
-                                <span>${v.salary ? v.salary : 'Зарплата не указана'}</span>
-                            </div><hr>`;
-                        });
-                    } else {
-                        resultsDiv.innerHTML = 'Нет результатов';
-                    }
+                    loading = false;
+                    let newResults = statusData.result && statusData.result.vacancies ? statusData.result.vacancies : (statusData.result || []);
+                    lastResults = newResults;
+                    totalPages = statusData.result && statusData.result.total_pages ? statusData.result.total_pages : 1;
+                    currentPage = page;
+                    renderResults();
+                    renderPagination();
                 } else if (statusData.status === 'error') {
                     clearInterval(pollInterval);
                     document.getElementById('loading').style.display = 'none';
+                    loading = false;
                     document.getElementById('results').innerHTML = statusData.error || 'Ошибка при поиске';
+                    document.getElementById('pagination').innerHTML = '';
                 }
             }, 2000);
+        }
+        function renderResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            if (lastResults.length > 0) {
+                lastResults.forEach(v => {
+                    let source = v.source === 'hh' ? 'HH.ru' : (v.source === 'superjob' ? 'SuperJob' : '');
+                    resultsDiv.innerHTML += `<div style='margin-bottom:10px;'>
+                        <a href="${v.link}" target="_blank"><b>${v.title}</b></a> <span style='color: #888;'>(${source})</span><br>
+                        <span>${v.company}</span><br>
+                        <span>${v.salary ? v.salary : 'Зарплата не указана'}</span>
+                    </div><hr>`;
+                });
+            } else {
+                resultsDiv.innerHTML = 'Нет результатов';
+            }
+        }
+        function renderPagination() {
+            const pagDiv = document.getElementById('pagination');
+            pagDiv.innerHTML = '';
+            if (totalPages <= 1) return;
+            let html = '';
+            if (currentPage > 1) {
+                html += `<button onclick="gotoPage(${currentPage-1})">Назад</button> `;
+            }
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    html += `<b>${i}</b> `;
+                } else {
+                    html += `<button onclick="gotoPage(${i})">${i}</button> `;
+                }
+            }
+            if (currentPage < totalPages) {
+                html += `<button onclick="gotoPage(${currentPage+1})">Вперёд</button>`;
+            }
+            pagDiv.innerHTML = html;
+        }
+        window.gotoPage = function(page) {
+            if (loading || page === currentPage) return;
+            loadVacancies(currentParams, page);
+        };
+        document.getElementById('searchForm').onsubmit = function(e) {
+            e.preventDefault();
+            const site = document.querySelector('input[name="site"]:checked').value;
+            const vacancy = document.getElementById('vacancy').value;
+            const sort = document.querySelector('input[name="sort"]:checked').value;
+            lastResults = [];
+            shownLinks = new Set();
+            currentParams = {vacancy, site, sort};
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('pagination').innerHTML = '';
+            loadVacancies(currentParams, 1);
         };
         document.getElementById('exportBtn').onclick = function() {
             if (!lastResults.length) {
