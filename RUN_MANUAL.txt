@@ -1,0 +1,52 @@
+# Инструкция по запуску проекта Job Parser System (без Docker)
+
+1. Клонируйте проект с GitHub:
+
+    git clone https://github.com/ВАШ_ПОЛЬЗОВАТЕЛЬ/job-parser-system.git
+    cd job-parser-system
+
+2. Создайте виртуальное окружение:
+
+    python -m venv .venv
+
+3. Активируйте виртуальное окружение:
+
+    # Для Windows:
+    .venv\Scripts\activate
+    # Для Linux/Mac:
+    source .venv/bin/activate
+
+4. Установите зависимости:
+
+    # Для backend:
+    cd backend
+    pip install -r requirements.txt
+    pip install sqlalchemy
+
+    # Для frontend:
+    cd ../frontend
+    pip install -r requirements.txt
+
+5. Запустите backend:
+
+    cd backend
+    python app.py
+
+    # Backend будет работать на http://localhost:5000
+
+6. Запустите frontend (в новом окне терминала):
+
+    cd frontend
+    python app.py
+
+    # Frontend будет работать на http://localhost:8000
+
+7. Откройте браузер и перейдите на:
+
+    http://localhost:8000
+
+8. Проверьте работу поиска вакансий.
+
+---
+
+Если появятся ошибки — скопируйте их и отправьте разработчику для помощи! 
