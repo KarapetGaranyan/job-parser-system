@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: job_parser_db
+    environment:
+      POSTGRES_DB: job_parser
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/seeds:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - job_parser_network
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: job_parser_backend
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@db:5432/job_parser
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - ./logs:/app/logs
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - job_parser_network
+    command: python app.py
+
+  # Frontend Web Interface
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: job_parser_frontend
+    environment:
+      - FLASK_ENV=development
+      - BACKEND_API_URL=http://backend:5000/api
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - backend
+    networks:
+      - job_parser_network
+    command: python app.py
+
+  # Redis for caching and task queue
+  redis:
+    image: redis:7-alpine
+    container_name: job_parser_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - job_parser_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  job_parser_network:
+    driver: bridge
