@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -12,6 +12,8 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import time
+import csv
+import io
 
 load_dotenv()
 
@@ -250,6 +252,26 @@ def vacancies_text():
         )
     session.close()
     return "<pre>" + "\n".join(lines) + "</pre>"
+
+@app.route('/export_csv', methods=['GET'])
+def export_csv():
+    session = Session()
+    vacancies = session.query(Vacancy).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['title', 'company', 'salary', 'link', 'source'])
+    for v in vacancies:
+        writer.writerow([v.title, v.company, v.salary, v.link, v.source])
+    session.close()
+    output.seek(0)
+    # Добавляем BOM для Excel
+    bom = '\ufeff'
+    csv_data = bom + output.getvalue()
+    return Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=vacancies.csv'}
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
