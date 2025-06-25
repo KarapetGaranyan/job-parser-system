@@ -14,6 +14,8 @@ from selenium.webdriver.chrome.service import Service
 import time
 import csv
 import io
+import threading
+import uuid
 
 load_dotenv()
 
@@ -36,6 +38,8 @@ class Vacancy(Base):
     source = Column(String(32))
 
 Base.metadata.create_all(engine)
+
+tasks = {}
 
 def save_vacancy_to_db(vac):
     session = Session()
@@ -68,59 +72,83 @@ def health():
 def hh_search():
     data = request.json
     vacancy = data.get('vacancy', '')
-    if not vacancy:
-        return jsonify({'error': 'Не указано название вакансии'}), 400
+    site = data.get('site', 'hh')
+    count = int(data.get('count', 20))
+    sort = data.get('sort', 'no')
+    results = []
 
-    url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1'
-    headers = {
-        'User-Agent': 'Mozilla/5.0'
-    }
-    response = ext_requests.get(url, headers=headers)
-    if response.status_code != 200:
-        return jsonify({'error': 'Ошибка при запросе к HH.ru'}), 500
+    if site == 'hh':
+        hh_vacancies = []
+        seen_links = set()
+        page = 0
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        max_pages = 20
+        while page < max_pages and len(hh_vacancies) < count:
+            url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1&page={page}'
+            response = ext_requests.get(url, headers=headers)
+            if response.status_code != 200:
+                break
+            soup = BeautifulSoup(response.text, 'html.parser')
+            items = soup.find_all('div', attrs={'data-qa': 'vacancy-serp__vacancy'})
+            if not items:
+                break
+            for item in items:
+                if len(hh_vacancies) >= count:
+                    break
+                title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
+                if not title_tag:
+                    title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
+                if not title_tag:
+                    continue
+                title = title_tag.text.strip()
+                link = title_tag['href']
+                if link in seen_links:
+                    continue
+                seen_links.add(link)
+                company_tag = item.find('a', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+                if not company_tag:
+                    company_tag = item.find('div', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+                company = company_tag.text.strip() if company_tag else ''
+                salary_tag = item.find('span', attrs={'data-qa': 'vacancy-serp__vacancy-compensation'})
+                if not salary_tag:
+                    salary_tag = item.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                salary = salary_tag.text.strip() if salary_tag else ''
+                if not salary:
+                    try:
+                        detail_resp = ext_requests.get(link, headers=headers, timeout=5)
+                        if detail_resp.status_code == 200:
+                            detail_soup = BeautifulSoup(detail_resp.text, 'html.parser')
+                            salary_detail = detail_soup.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                            if salary_detail:
+                                salary = salary_detail.text.strip()
+                    except Exception as e:
+                        salary = ''
+                vac = {
+                    'title': title,
+                    'link': link,
+                    'company': company,
+                    'salary': salary if salary else 'Зарплата не указана',
+                    'source': 'hh'
+                }
+                hh_vacancies.append(vac)
+                save_vacancy_to_db(vac)
+            page += 1
+        results = hh_vacancies[:count]
+    elif site == 'superjob':
+        sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=count)
+        results = sj_vacancies[:count]
+    else:
+        return jsonify({'error': 'Неизвестный сайт'}), 400
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-    vacancies = []
-    for item in soup.find_all('div', attrs={'data-qa': 'vacancy-serp__vacancy'}):
-        title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
-        if not title_tag:
-            title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
-        if not title_tag:
-            continue
-        title = title_tag.text.strip()
-        link = title_tag['href']
-        company_tag = item.find('a', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
-        if not company_tag:
-            company_tag = item.find('div', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
-        company = company_tag.text.strip() if company_tag else ''
-        # Зарплата
-        salary_tag = item.find('span', attrs={'data-qa': 'vacancy-serp__vacancy-compensation'})
-        if not salary_tag:
-            salary_tag = item.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
-        salary = salary_tag.text.strip() if salary_tag else ''
-
-        # Если зарплата не найдена, пробуем получить с детальной страницы
-        if not salary:
+    if sort == 'yes':
+        def salary_to_int(s):
             try:
-                detail_resp = ext_requests.get(link, headers=headers, timeout=5)
-                if detail_resp.status_code == 200:
-                    detail_soup = BeautifulSoup(detail_resp.text, 'html.parser')
-                    salary_detail = detail_soup.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
-                    if salary_detail:
-                        salary = salary_detail.text.strip()
-            except Exception as e:
-                salary = ''
-        vac = {
-            'title': title,
-            'link': link,
-            'company': company,
-            'salary': salary if salary else 'Зарплата не указана',
-            'source': 'hh'
-        }
-        vacancies.append(vac)
-        save_vacancy_to_db(vac)
+                return int(s.split()[0].replace('от', '').replace('до', '').replace('-', '').replace('₽', '').replace(' ', ''))
+            except:
+                return 0
+        results = sorted(results, key=lambda v: salary_to_int(v['salary']), reverse=True)
 
-    return jsonify({'vacancies': vacancies})
+    return jsonify({'vacancies': results})
 
 def get_superjob_vacancies(search_word, vacancies_count=20):
     url = 'https://api.superjob.ru/2.0/vacancies'
@@ -174,56 +202,69 @@ def search_all():
     if not vacancy:
         return jsonify({'error': 'Не указано название вакансии'}), 400
 
-    # HH.ru
-    url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1'
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    response = ext_requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    # Многостраничный парсинг HH.ru
     hh_vacancies = []
-    for item in soup.find_all('div', attrs={'data-qa': 'vacancy-serp__vacancy'}):
-        title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
-        if not title_tag:
-            title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
-        if not title_tag:
-            continue
-        title = title_tag.text.strip()
-        link = title_tag['href']
-        company_tag = item.find('a', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
-        if not company_tag:
-            company_tag = item.find('div', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
-        company = company_tag.text.strip() if company_tag else ''
-        salary_tag = item.find('span', attrs={'data-qa': 'vacancy-serp__vacancy-compensation'})
-        if not salary_tag:
-            salary_tag = item.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
-        salary = salary_tag.text.strip() if salary_tag else ''
-        if not salary:
-            try:
-                detail_resp = ext_requests.get(link, headers=headers, timeout=5)
-                if detail_resp.status_code == 200:
-                    detail_soup = BeautifulSoup(detail_resp.text, 'html.parser')
-                    salary_detail = detail_soup.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
-                    if salary_detail:
-                        salary = salary_detail.text.strip()
-            except Exception as e:
-                salary = ''
-        vac = {
-            'title': title,
-            'link': link,
-            'company': company,
-            'salary': salary if salary else 'Зарплата не указана',
-            'source': 'hh'
-        }
-        hh_vacancies.append(vac)
-        save_vacancy_to_db(vac)
+    page = 0
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    max_pages = 10  # Ограничение на количество страниц для ускорения парсинга
+    while page < max_pages:
+        url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1&page={page}'
+        response = ext_requests.get(url, headers=headers)
+        if response.status_code != 200:
+            break
+        soup = BeautifulSoup(response.text, 'html.parser')
+        items = soup.find_all('div', attrs={'data-qa': 'vacancy-serp__vacancy'})
+        if not items:
+            break
+        for item in items:
+            title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
+            if not title_tag:
+                title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
+            if not title_tag:
+                continue
+            title = title_tag.text.strip()
+            link = title_tag['href']
+            company_tag = item.find('a', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+            if not company_tag:
+                company_tag = item.find('div', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+            company = company_tag.text.strip() if company_tag else ''
+            salary_tag = item.find('span', attrs={'data-qa': 'vacancy-serp__vacancy-compensation'})
+            if not salary_tag:
+                salary_tag = item.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+            salary = salary_tag.text.strip() if salary_tag else ''
+            if not salary:
+                try:
+                    detail_resp = ext_requests.get(link, headers=headers, timeout=5)
+                    if detail_resp.status_code == 200:
+                        detail_soup = BeautifulSoup(detail_resp.text, 'html.parser')
+                        salary_detail = detail_soup.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                        if salary_detail:
+                            salary = salary_detail.text.strip()
+                except Exception as e:
+                    salary = ''
+            vac = {
+                'title': title,
+                'link': link,
+                'company': company,
+                'salary': salary if salary else 'Зарплата не указана',
+                'source': 'hh'
+            }
+            hh_vacancies.append(vac)
+            save_vacancy_to_db(vac)
+        page += 1
 
-    # SuperJob через API
-    sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=20)
+    # SuperJob через API (лимит увеличен до 100)
+    sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=100)
     return jsonify({'vacancies': hh_vacancies + sj_vacancies})
 
 @app.route('/api/vacancies', methods=['GET'])
 def get_vacancies():
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 20))
     session = Session()
-    vacancies = session.query(Vacancy).all()
+    query = session.query(Vacancy)
+    total = query.count()
+    vacancies = query.offset((page - 1) * per_page).limit(per_page).all()
     result = []
     for v in vacancies:
         result.append({
@@ -234,7 +275,12 @@ def get_vacancies():
             'source': v.source
         })
     session.close()
-    return jsonify({'vacancies': result})
+    return jsonify({
+        'vacancies': result,
+        'page': page,
+        'per_page': per_page,
+        'total': total
+    })
 
 @app.route('/vacancies_text', methods=['GET'])
 def vacancies_text():
@@ -272,6 +318,103 @@ def export_csv():
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment;filename=vacancies.csv'}
     )
+
+def background_parse(task_id, vacancy, site, count, sort):
+    try:
+        results = []
+        if site == 'hh':
+            hh_vacancies = []
+            seen_links = set()
+            page = 0
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            max_pages = 20
+            while page < max_pages and len(hh_vacancies) < count:
+                url = f'https://hh.ru/search/vacancy?text={vacancy}&area=1&page={page}'
+                response = ext_requests.get(url, headers=headers)
+                if response.status_code != 200:
+                    break
+                soup = BeautifulSoup(response.text, 'html.parser')
+                items = soup.find_all('div', attrs={'data-qa': 'vacancy-serp__vacancy'})
+                if not items:
+                    break
+                for item in items:
+                    if len(hh_vacancies) >= count:
+                        break
+                    title_tag = item.find('a', attrs={'data-qa': 'serp-item__title'})
+                    if not title_tag:
+                        title_tag = item.find('a', class_=lambda x: x and 'magritte-link' in x)
+                    if not title_tag:
+                        continue
+                    title = title_tag.text.strip()
+                    link = title_tag['href']
+                    if link in seen_links:
+                        continue
+                    seen_links.add(link)
+                    company_tag = item.find('a', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+                    if not company_tag:
+                        company_tag = item.find('div', attrs={'data-qa': 'vacancy-serp__vacancy-employer'})
+                    company = company_tag.text.strip() if company_tag else ''
+                    salary_tag = item.find('span', attrs={'data-qa': 'vacancy-serp__vacancy-compensation'})
+                    if not salary_tag:
+                        salary_tag = item.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                    salary = salary_tag.text.strip() if salary_tag else ''
+                    if not salary:
+                        try:
+                            detail_resp = ext_requests.get(link, headers=headers, timeout=5)
+                            if detail_resp.status_code == 200:
+                                detail_soup = BeautifulSoup(detail_resp.text, 'html.parser')
+                                salary_detail = detail_soup.find('span', attrs={'data-qa': 'vacancy-salary-compensation-type-net'})
+                                if salary_detail:
+                                    salary = salary_detail.text.strip()
+                        except Exception as e:
+                            salary = ''
+                    vac = {
+                        'title': title,
+                        'link': link,
+                        'company': company,
+                        'salary': salary if salary else 'Зарплата не указана',
+                        'source': 'hh'
+                    }
+                    hh_vacancies.append(vac)
+                    save_vacancy_to_db(vac)
+                page += 1
+            results = hh_vacancies[:count]
+        elif site == 'superjob':
+            sj_vacancies = get_superjob_vacancies(vacancy, vacancies_count=count)
+            results = sj_vacancies[:count]
+        else:
+            tasks[task_id] = {'status': 'error', 'error': 'Неизвестный сайт'}
+            return
+        if sort == 'yes':
+            def salary_to_int(s):
+                try:
+                    return int(s.split()[0].replace('от', '').replace('до', '').replace('-', '').replace('₽', '').replace(' ', ''))
+                except:
+                    return 0
+            results = sorted(results, key=lambda v: salary_to_int(v['salary']), reverse=True)
+        tasks[task_id] = {'status': 'done', 'result': results}
+    except Exception as e:
+        tasks[task_id] = {'status': 'error', 'error': str(e)}
+
+@app.route('/api/async_search', methods=['POST'])
+def async_search():
+    data = request.json
+    vacancy = data.get('vacancy', '')
+    site = data.get('site', 'hh')
+    count = int(data.get('count', 20))
+    sort = data.get('sort', 'no')
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {'status': 'running'}
+    thread = threading.Thread(target=background_parse, args=(task_id, vacancy, site, count, sort))
+    thread.start()
+    return jsonify({'task_id': task_id})
+
+@app.route('/api/async_status/<task_id>', methods=['GET'])
+def async_status(task_id):
+    task = tasks.get(task_id)
+    if not task:
+        return jsonify({'status': 'not_found'}), 404
+    return jsonify(task)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
