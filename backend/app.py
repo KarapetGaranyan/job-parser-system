@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 import requests as ext_requests
 from bs4 import BeautifulSoup
+from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
@@ -11,6 +13,36 @@ app = Flask(__name__)
 CORS(app)
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
+
+engine = create_engine('sqlite:///vacancies.db')
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+
+class Vacancy(Base):
+    __tablename__ = 'vacancies'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(256))
+    link = Column(Text)
+    company = Column(String(256))
+    salary = Column(String(128))
+    source = Column(String(32))
+
+Base.metadata.create_all(engine)
+
+def save_vacancy_to_db(vac):
+    session = Session()
+    exists = session.query(Vacancy).filter_by(link=vac['link']).first()
+    if not exists:
+        vacancy = Vacancy(
+            title=vac['title'],
+            link=vac['link'],
+            company=vac['company'],
+            salary=vac['salary'],
+            source=vac['source']
+        )
+        session.add(vacancy)
+        session.commit()
+    session.close()
 
 @app.route('/')
 def home():
@@ -70,12 +102,15 @@ def hh_search():
                         salary = salary_detail.text.strip()
             except Exception as e:
                 salary = ''
-        vacancies.append({
+        vac = {
             'title': title,
             'link': link,
             'company': company,
-            'salary': salary
-        })
+            'salary': salary if salary else 'Зарплата не указана',
+            'source': 'hh'
+        }
+        vacancies.append(vac)
+        save_vacancy_to_db(vac)
 
     return jsonify({'vacancies': vacancies})
 
@@ -96,13 +131,15 @@ def parse_superjob(vacancy):
             company = company_tag.text.strip() if company_tag else ''
             salary_tag = item.find('span', attrs={'class': 'f-test-text-company-item-salary'})
             salary = salary_tag.text.strip() if salary_tag else 'Зарплата не указана'
-            vacancies.append({
+            vac = {
                 'title': title,
                 'link': link,
                 'company': company,
                 'salary': salary,
                 'source': 'superjob'
-            })
+            }
+            vacancies.append(vac)
+            save_vacancy_to_db(vac)
         return vacancies
     except Exception as e:
         print(f'Ошибка при парсинге SuperJob: {e}')
@@ -147,13 +184,15 @@ def search_all():
                         salary = salary_detail.text.strip()
             except Exception as e:
                 salary = ''
-        hh_vacancies.append({
+        vac = {
             'title': title,
             'link': link,
             'company': company,
             'salary': salary if salary else 'Зарплата не указана',
             'source': 'hh'
-        })
+        }
+        hh_vacancies.append(vac)
+        save_vacancy_to_db(vac)
 
     # SuperJob
     sj_vacancies = parse_superjob(vacancy)
