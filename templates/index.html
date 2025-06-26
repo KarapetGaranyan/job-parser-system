@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вакансии</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-light">
+<div class="container py-4">
+    <h1 class="mb-4">Поиск вакансий</h1>
+    <form id="search-form" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="query" placeholder="Ключевое слово" value="{{ query }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" name="location" placeholder="Город" value="{{ location }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" name="company" placeholder="Компания" value="{{ company }}">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">Поиск</button>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Выберите сайт для поиска:</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="site" id="hh" value="hh" {% if source == 'hh' %}checked{% endif %}>
+                <label class="form-check-label" for="hh">HH.ru</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="site" id="superjob" value="superjob" {% if source == 'superjob' %}checked{% endif %}>
+                <label class="form-check-label" for="superjob">SuperJob</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="site" id="all" value="all" {% if source == 'all' %}checked{% endif %}>
+                <label class="form-check-label" for="all">Оба сайта</label>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <label for="per_page" class="form-label">Вакансий на странице:</label>
+            <select class="form-select" id="per_page" name="per_page">
+                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-3 d-flex align-items-end">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="fast_search" name="fast_search">
+                <label class="form-check-label" for="fast_search">Быстрый поиск (только свежие вакансии)</label>
+            </div>
+        </div>
+    </form>
+    <div class="mb-3 d-flex gap-2">
+        <a id="export-link" class="btn btn-success" href="/export?query={{ query }}&location={{ location }}&company={{ company }}">Экспорт в CSV</a>
+        <button id="clear-db-btn" class="btn btn-danger" type="button">Очистить БД</button>
+    </div>
+    <h2>Найдено: <span id="total">{{ total }}</span></h2>
+    <div id="loading" style="display:none; color: #007bff; font-weight: bold;">Загрузка, пожалуйста, подождите...</div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Компания</th>
+                <th>Местоположение</th>
+                <th>Зарплата</th>
+                <th>Описание</th>
+                <th>Дата публикации</th>
+                <th>Ссылка</th>
+                <th>Источник</th>
+            </tr>
+            </thead>
+            <tbody id="vacancies-body">
+            {% if vacancies|length == 0 %}
+            <tr><td colspan="9" class="text-center">Нет вакансий</td></tr>
+            {% else %}
+            {% for v in vacancies %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ v.title }}</td>
+                <td>{{ v.company }}</td>
+                <td>{{ v.location }}</td>
+                <td>{{ v.salary }}</td>
+                <td>{{ v.description }}</td>
+                <td>{{ v.published_at }}</td>
+                <td>{% if v.link %}<a href="{{ v.link }}" target="_blank">Открыть</a>{% endif %}</td>
+                <td>{% if v.source == 'hh' %}HH.ru{% elif v.source == 'superjob' %}SuperJob{% else %}{{ v.source }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <nav>
+        <ul class="pagination">
+            {% if page > 1 %}
+            <li class="page-item"><a class="page-link" href="#" data-page="{{ page-1 }}">Назад</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">Страница {{ page }}</span></li>
+            {% if total > page*per_page %}
+            <li class="page-item"><a class="page-link" href="#" data-page="{{ page+1 }}">Вперёд</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+<script>
+$(function() {
+    function renderFastResults(vacancies) {
+        let html = '';
+        if (!vacancies.length) {
+            html = '<tr><td colspan="9" class="text-center">Нет вакансий</td></tr>';
+        } else {
+            vacancies.forEach(function(v, i) {
+                let source = v.source === 'hh' ? 'HH.ru' : (v.source === 'superjob' ? 'SuperJob' : (v.source || ''));
+                html += `<tr>
+                    <td>${i+1}</td>
+                    <td>${v.title || ''}</td>
+                    <td>${v.company || ''}</td>
+                    <td>${v.location || ''}</td>
+                    <td>${v.salary || ''}</td>
+                    <td>${v.description || ''}</td>
+                    <td>${v.published_at || ''}</td>
+                    <td>${v.link ? `<a href="${v.link}" target="_blank">Открыть</a>` : ''}</td>
+                    <td>${source}</td>
+                </tr>`;
+            });
+        }
+        $('#vacancies-body').html(html);
+        $('#total').text(vacancies.length);
+        $('.pagination').html('');
+        $('#loading').hide();
+    }
+    function loadVacancies(page) {
+        const params = $('#search-form').serializeArray();
+        let data = {};
+        params.forEach(function(item) { data[item.name] = item.value; });
+        data['page'] = page || 1;
+        const fast = $('#fast_search').is(':checked');
+        if (fast) {
+            $('#loading').show();
+            let api = '/api/fast_hh_search';
+            if (data.site === 'superjob') api = '/api/fast_superjob_search';
+            if (data.site === 'both') api = '/api/fast_search_all';
+            $.ajax({
+                url: api,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    vacancy: data.query,
+                    count: parseInt(data.per_page) || 10
+                }),
+                success: function(resp) {
+                    renderFastResults(resp.vacancies || []);
+                },
+                error: function() {
+                    renderFastResults([]);
+                }
+            });
+            return;
+        }
+        $('#loading').show();
+        // Новый функционал: сначала обновляем базу через /trigger_update, потом подгружаем вакансии
+        $.post('/trigger_update', function(resp) {
+            if (resp.status === 'started') {
+                // Ожидаем завершения обновления (например, 10-15 секунд, можно сделать опрос статуса)
+                setTimeout(function() {
+                    $.get('/', data, function(html) {
+                        const newBody = $(html).find('#vacancies-body').html();
+                        $('#vacancies-body').html(newBody);
+                        $('#total').text($(html).find('#total').text());
+                        // Обновляем пагинацию
+                        const newPagination = $(html).find('.pagination').html();
+                        $('.pagination').html(newPagination);
+                        $('#loading').hide();
+                    });
+                }, 15000); // 15 секунд ожидания (можно скорректировать)
+            } else {
+                $('#loading').hide();
+                alert('Ошибка запуска обновления базы!');
+            }
+        });
+    }
+    $('#search-form').on('submit', function(e) {
+        e.preventDefault();
+        loadVacancies(1);
+    });
+    $(document).on('click', '.pagination a.page-link', function(e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        loadVacancies(page);
+    });
+    $('#clear-db-btn').on('click', function() {
+        if (!confirm('Вы уверены, что хотите удалить все вакансии из базы?')) return;
+        $('#loading').show();
+        $.post('/clear_db', function(resp) {
+            if (resp.status === 'ok') {
+                // Очищаем таблицу и счётчик
+                $('#vacancies-body').html('<tr><td colspan="9" class="text-center">Нет вакансий</td></tr>');
+                $('#total').text('0');
+            } else {
+                alert('Ошибка при очистке базы: ' + (resp.error || ''));
+            }
+            $('#loading').hide();
+        });
+    });
+});
+</script>
+</body>
+</html> 
