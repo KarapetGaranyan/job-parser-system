@@ -1,0 +1,93 @@
+[
+  {
+    "title": "Middle Backend-разработчик (Python)",
+    "company": "SAMYY SOFT",
+    "salary": "13000000",
+    "description": "Разработка и тестирование масштабируемых RESTful API на FastAPI. Интеграция с сервисами: PostgreSQL, Redis, RabbitMQ. Проектирование backend-систем на основе микросервисной...",
+    "link": "https://hh.ru/vacancy/122037303"
+  },
+  {
+    "title": "Junor Web-разработчик",
+    "company": "ЧП VELVET WEB DEVELOPMENT GROUP",
+    "salary": "3500000",
+    "description": "",
+    "link": "https://hh.ru/vacancy/121890288"
+  },
+  {
+    "title": "Системный администратор",
+    "company": "ПожЛабСервис ЛТД",
+    "salary": "400000",
+    "description": "Участие в аудитах и анализе уязвимостей, ведение и разбор логов безопасности. Автоматизация сетевых операций (Ansible, <highlighttext>Python</highlighttext>, скрипты CLI). ",
+    "link": "https://hh.ru/vacancy/121934096"
+  },
+  {
+    "title": "Разработчик",
+    "company": "TJJ-company",
+    "salary": "400000",
+    "description": "Research and develop cutting-edge DPI detection algorithms for encrypted and obfuscated traffic. Reverse-engineer and analyze traffic patterns from...",
+    "link": "https://hh.ru/vacancy/121795489"
+  },
+  {
+    "title": "Старший консультант отдела бизнес-анализа",
+    "company": "Аэрофлот",
+    "salary": "325000",
+    "description": "Анализ и оценка бизнес-процессов, выявление проблем в сфере развития авиакомпаний Группы. Координация кросс-функциональных проектов по повышению эффективности деятельности...",
+    "link": "https://hh.ru/vacancy/122011928"
+  },
+  {
+    "title": "Web-программист - стажер",
+    "company": "Autodata",
+    "salary": "100000",
+    "description": "Лучшая система аналитики товаров на Kaspi. Fastbot - Телеграм бот для поиска авто. Ну и есть конечно же такие проекты, как...",
+    "link": "https://hh.ru/vacancy/118711736"
+  },
+  {
+    "title": "Стажёр — менеджер продукта",
+    "company": "VK",
+    "salary": "80000",
+    "description": "Поддержка развития продуктов СУБД и сервисов Data Platform (DBaaS + PaaS-DataServices). Взаимодействие со смежными командами (разработка, маркетинг, продажи, дизайн). ",
+    "link": "https://hh.ru/vacancy/121950103"
+  },
+  {
+    "title": "Junior-Middle Backend Developer",
+    "company": "БЭТНЭТИКС",
+    "salary": "80000",
+    "description": "Разработка высокоскоростных парсеров. Отслеживание возможности парсинга интернет-ресурса (отслеживание json-запросов, API-документация, исследования возможности парсинга через html, websocket). ",
+    "link": "https://hh.ru/vacancy/122061074"
+  },
+  {
+    "title": "Senior Frontend Developer / Старший фронтэнд разработчик",
+    "company": "Podscribe",
+    "salary": "5000",
+    "description": "We at Podscribe measure advertisers’ campaign performance everywhere from podcasts and videos to social media platforms. We’re involved in...",
+    "link": "https://hh.ru/vacancy/122072001"
+  },
+  {
+    "title": "Python-разработчик",
+    "company": "Эвокарго",
+    "salary": "",
+    "description": "Evocargo создает транспорт будущего. Мы проектируем, конструируем и собираем автономные электро-грузовики, разрабатываем программное обеспечение беспилотных грузовиков и низкоуровневых компонентов. ",
+    "link": "https://hh.ru/vacancy/122070454"
+  },
+  {
+    "title": "Аналитик-разработчик в команду релевантности ответов Алисы",
+    "company": "Яндекс",
+    "salary": "",
+    "description": "Отвечать на сложные вопросы. Анализировать данные — структурированные и не очень. Придумывать полезные метрики. Рисовать ёмкие графики. Генерировать и проверять гипотезы. ",
+    "link": "https://hh.ru/vacancy/121227506"
+  },
+  {
+    "title": "Web разработчик",
+    "company": "Freedom Media",
+    "salary": "",
+    "description": "HTML, CSS, JavaScript: фронтенд-разработка. Языки программирования: <highlighttext>Python</highlighttext>, Java, PHP, JavaScript (для бэкенда), Go и другие. Фреймворки: Angular, React, Vue.js...",
+    "link": "https://hh.ru/vacancy/122101155"
+  },
+  {
+    "title": "QA-Engineer/Тестировщик",
+    "company": "Технологии управления персоналом",
+    "salary": "80000",
+    "description": "Интернет магазин. Мобильное приложение google /apple. Кассы самообслуживания и мониторинг касс. Jira (Service Desk и управление проектами). Buildin и Confluence...",
+    "link": "https://hh.ru/vacancy/122059966"
+  }
+]
