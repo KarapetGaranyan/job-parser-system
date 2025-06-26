@@ -1,0 +1,80 @@
+index_html = '''{% extends "base.html" %}
+
+{% block title %}Поиск вакансий - Job Parser{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">🔍 Поиск вакансий</h3>
+            </div>
+            <div class="card-body">
+                <form id="searchForm">
+                    <div class="mb-3">
+                        <label for="vacancy" class="form-label">Название вакансии</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="vacancy" 
+                               placeholder="Например: Python разработчик"
+                               required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="searchSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                        Найти вакансии
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="results" class="mt-4" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Результаты поиска</h4>
+                </div>
+                <div class="card-body">
+                    <div id="searchStats" class="mb-3"></div>
+                    <div id="vacanciesList"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="errorAlert" class="alert alert-danger mt-4" style="display: none;"></div>
+    </div>
+</div>
+
+<script>
+document.getElementById('searchForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const vacancy = document.getElementById('vacancy').value;
+
+    try {
+        const response = await fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vacancy: vacancy })
+        });
+
+        const data = await response.json();
+
+        let html = '<h4>Результаты:</h4><ul class="list-group">';
+        data.vacancies.forEach(v => {
+            html += `
+                <li class="list-group-item">
+                    <h6>${v.title}</h6>
+                    <p><strong>Компания:</strong> ${v.company}<br>
+                       <strong>Зарплата:</strong> ${v.salary}</p>
+                </li>
+            `;
+        });
+        html += '</ul>';
+
+        document.getElementById('vacanciesList').innerHTML = html;
+        document.getElementById('results').style.display = 'block';
+
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
+});
+</script>
+{% endblock %}'''

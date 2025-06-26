@@ -1,0 +1,163 @@
+vacancies_html = '''{% extends "base.html" %}
+
+{% block title %}Все вакансии - Job Parser{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📋 Все вакансии</h2>
+    <div>
+        <a href="/export/csv" class="btn btn-success">📥 Скачать CSV</a>
+        <a href="/vacancies/text" class="btn btn-info" target="_blank">📄 Текстовый вид</a>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <select id="sourceFilter" class="form-select">
+            <option value="">Все источники</option>
+            <option value="hh">HH.ru</option>
+            <option value="superjob">SuperJob</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <input type="text" id="companyFilter" class="form-control" placeholder="Фильтр по компании">
+    </div>
+</div>
+
+<div id="vacanciesList">
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+</div>
+
+<nav id="pagination" class="mt-4" style="display: none;"></nav>
+
+<script>
+let currentPage = 1;
+let currentFilters = { source: '', company: '' };
+
+async function loadVacancies(page = 1) {
+    try {
+        const params = new URLSearchParams({
+            page: page,
+            per_page: 10,
+            source: currentFilters.source,
+            company: currentFilters.company
+        });
+        
+        const response = await fetch(`/api/vacancies?${params}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        displayVacancies(data.vacancies);
+        displayPagination(data.pagination);
+        
+    } catch (error) {
+        console.error('Ошибка загрузки:', error);
+        document.getElementById('vacanciesList').innerHTML = 
+            `<div class="alert alert-danger">Ошибка загрузки: ${error.message}</div>`;
+    }
+}
+
+function displayVacancies(vacancies) {
+    const container = document.getElementById('vacanciesList');
+    
+    if (vacancies.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">Вакансии не найдены</div>';
+        return;
+    }
+    
+    let html = '';
+    vacancies.forEach(vacancy => {
+        const sourceClass = vacancy.source === 'hh' ? 'success' : 'info';
+        const date = new Date(vacancy.created_at).toLocaleDateString('ru-RU');
+        
+        html += `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title">${vacancy.title}</h5>
+                            <p class="card-text">
+                                <strong>Компания:</strong> ${vacancy.company}<br>
+                                <strong>Зарплата:</strong> ${vacancy.salary}<br>
+                                <strong>Местоположение:</strong> ${vacancy.location}<br>
+                                <small class="text-muted">Добавлено: ${date}</small>
+                            </p>
+                        </div>
+                        <div>
+                            <span class="badge bg-${sourceClass}">${vacancy.source.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <a href="${vacancy.link}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        Открыть вакансию
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function displayPagination(pagination) {
+    const nav = document.getElementById('pagination');
+    
+    if (pagination.pages <= 1) {
+        nav.style.display = 'none';
+        return;
+    }
+    
+    let html = '<ul class="pagination justify-content-center">';
+    
+    // Предыдущая страница
+    html += `<li class="page-item ${pagination.page <= 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="changePage(${pagination.page - 1})">Предыдущая</a>
+    </li>`;
+    
+    // Номера страниц
+    for (let i = 1; i <= pagination.pages; i++) {
+        if (i === pagination.page) {
+            html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+        } else {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+        }
+    }
+    
+    // Следующая страница
+    html += `<li class="page-item ${pagination.page >= pagination.pages ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="changePage(${pagination.page + 1})">Следующая</a>
+    </li>`;
+    
+    html += '</ul>';
+    nav.innerHTML = html;
+    nav.style.display = 'block';
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadVacancies(page);
+}
+
+// Фильтры
+document.getElementById('sourceFilter').addEventListener('change', function(e) {
+    currentFilters.source = e.target.value;
+    currentPage = 1;
+    loadVacancies(1);
+});
+
+document.getElementById('companyFilter').addEventListener('input', function(e) {
+    currentFilters.company = e.target.value;
+    currentPage = 1;
+    setTimeout(() => loadVacancies(1), 500); // Debounce
+});
+
+// Загружаем данные при загрузке страницы
+loadVacancies();
+</script>
+{% endblock %}'''
