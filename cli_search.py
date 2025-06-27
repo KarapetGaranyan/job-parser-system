@@ -36,8 +36,7 @@ def main():
             'title': v['name'],
             'company': v['employer']['name'],
             'salary': str(v.get('salary', {}).get('from', '')) if v.get('salary') else '',
-            'description': ((v.get('snippet', {}).get('responsibility') or '')[:200] +
-                            ('...' if v.get('snippet', {}).get('responsibility') and len(v.get('snippet', {}).get('responsibility')) > 200 else '')),
+            'description': ((v.get('snippet', {}).get('responsibility') or '')[:50] + ('...' if v.get('snippet', {}).get('responsibility') and len(v.get('snippet', {}).get('responsibility')) > 50 else '')),
             'link': v.get('alternate_url', '')
         } for v in results]
         filename = 'res_HH.json'
@@ -47,7 +46,7 @@ def main():
             'title': v.get('title', ''),
             'company': v.get('company', ''),
             'salary': v.get('salary', ''),
-            'description': (v.get('description', '')[:200] + ('...' if v.get('description') and len(v.get('description')) > 200 else '')),
+            'description': (v.get('description', '')[:50] + ('...' if v.get('description') and len(v.get('description')) > 50 else '')),
             'link': v.get('link', '')
         } for v in sj_results]
         filename = 'res_SJ.json'
@@ -57,8 +56,7 @@ def main():
             'title': v['name'],
             'company': v['employer']['name'],
             'salary': str(v.get('salary', {}).get('from', '')) if v.get('salary') else '',
-            'description': ((v.get('snippet', {}).get('responsibility') or '')[:200] +
-                            ('...' if v.get('snippet', {}).get('responsibility') and len(v.get('snippet', {}).get('responsibility')) > 200 else '')),
+            'description': ((v.get('snippet', {}).get('responsibility') or '')[:50] + ('...' if v.get('snippet', {}).get('responsibility') and len(v.get('snippet', {}).get('responsibility')) > 50 else '')),
             'link': v.get('alternate_url', '')
         } for v in hh_results]
         sj_results = fetch_superjob_vacancies(vacancy, vacancies_count=count)
@@ -66,7 +64,7 @@ def main():
             'title': v.get('title', ''),
             'company': v.get('company', ''),
             'salary': v.get('salary', ''),
-            'description': (v.get('description', '')[:200] + ('...' if v.get('description') and len(v.get('description')) > 200 else '')),
+            'description': (v.get('description', '')[:50] + ('...' if v.get('description') and len(v.get('description')) > 50 else '')),
             'link': v.get('link', '')
         } for v in sj_results]
         results = hh_results + sj_results

@@ -1,0 +1,212 @@
+[
+  {
+    "title": "Junor Web-разработчик",
+    "company": "ЧП VELVET WEB DEVELOPMENT GROUP",
+    "salary": "3500000",
+    "description": "",
+    "link": "https://hh.ru/vacancy/121890288"
+  },
+  {
+    "title": "Тестировщик ПО",
+    "company": "NEXT Contact",
+    "salary": "",
+    "description": "Функциональное, регрессионное, интеграционное, smoke-тестирование, приемочное (UAT). Нефункциональное тестирование: нагрузочное, usability, кросс-браузерное и кросс-платформенное тестирование. Баг-тре...",
+    "link": "https://hh.ru/vacancy/121380408"
+  },
+  {
+    "title": "Системный администратор",
+    "company": "ПожЛабСервис ЛТД",
+    "salary": "400000",
+    "description": "Участие в аудитах и анализе уязвимостей, ведение и разбор логов безопасности. Автоматизация сетевых операций (Ansible, <highlighttext>Python</highlighttext>, скрипты CLI). ",
+    "link": "https://hh.ru/vacancy/121934096"
+  },
+  {
+    "title": "Frontend-разработчик",
+    "company": "65apps",
+    "salary": "",
+    "description": "Работа с markdown/LaTeX (remark-math, rehype-mathjax).",
+    "link": "https://hh.ru/vacancy/122142604"
+  },
+  {
+    "title": "Web разработчик",
+    "company": "Freedom Media",
+    "salary": "",
+    "description": "HTML, CSS, JavaScript: фронтенд-разработка. Языки программирования: <highlighttext>Python</highlighttext>, Java, PHP, JavaScript (для бэкенда), Go и другие. Фреймворки: Angular, React, Vue.js...",
+    "link": "https://hh.ru/vacancy/122101155"
+  },
+  {
+    "title": "Python-разработчик (trainee)",
+    "company": "Р-Вижн",
+    "salary": "",
+    "description": "Разработка интеграций между системами на языке <highlighttext>python</highlighttext>: Поддержка и оптимизация существующих решений.",
+    "link": "https://hh.ru/vacancy/121289987"
+  },
+  {
+    "title": "Стажёр — менеджер продукта",
+    "company": "VK",
+    "salary": "80000",
+    "description": "Поддержка развития продуктов СУБД и сервисов Data Platform (DBaaS + PaaS-DataServices). Взаимодействие со смежными командами (разработка, маркетинг, продажи, дизайн). ",
+    "link": "https://hh.ru/vacancy/121950103"
+  },
+  {
+    "title": "Backend-разработчик (Python)",
+    "company": "ПИКАССО",
+    "salary": "",
+    "description": "Обязанности: Написание и поддержка кода на <highlighttext>Python</highlighttext>3. Разработка и поддержка существующих микросервисов. Поддержка легаси кода. Проведение код-ревью.",
+    "link": "https://hh.ru/vacancy/122144595"
+  },
+  {
+    "title": "Тестировщик/QA инженер",
+    "company": "НПК Интеллектуальные технологии",
+    "salary": "",
+    "description": "Реализовывать ручное тестирование REST API с использованием Postman. Реализовывать функциональное тестирование, регрессионное тестирование, исследовательское тестирование веб-приложения. Разрабатывать...",
+    "link": "https://hh.ru/vacancy/122144700"
+  },
+  {
+    "title": "Разработчик",
+    "company": "TJJ-company",
+    "salary": "400000",
+    "description": "Research and develop cutting-edge DPI detection algorithms for encrypted and obfuscated traffic. Reverse-engineer and analyze traffic patterns from...",
+    "link": "https://hh.ru/vacancy/121795489"
+  },
+  {
+    "title": "Системный разработчик (Python)",
+    "company": "SECURE SECTOR",
+    "salary": "1000",
+    "description": "Разработка и поддержка системных и серверных компонентов на <highlighttext>Python</highlighttext>. Интеграция с системами мониторинга, логирования, управления процессами. Разработка скриптов и инструм...",
+    "link": "https://hh.ru/vacancy/122128369"
+  },
+  {
+    "title": "Web-программист - стажер",
+    "company": "Autodata",
+    "salary": "100000",
+    "description": "Лучшая система аналитики товаров на Kaspi. Fastbot - Телеграм бот для поиска авто. Ну и есть конечно же такие проекты, как...",
+    "link": "https://hh.ru/vacancy/118711736"
+  },
+  {
+    "title": "Junior-Middle Backend Developer",
+    "company": "БЭТНЭТИКС",
+    "salary": "80000",
+    "description": "Разработка высокоскоростных парсеров. Отслеживание возможности парсинга интернет-ресурса (отслеживание json-запросов, API-документация, исследования возможности парсинга через html, websocket). ",
+    "link": "https://hh.ru/vacancy/122061074"
+  },
+  {
+    "title": "Senior Frontend Developer / Старший фронтэнд разработчик",
+    "company": "Podscribe",
+    "salary": "5000",
+    "description": "We at Podscribe measure advertisers’ campaign performance everywhere from podcasts and videos to social media platforms. We’re involved in...",
+    "link": "https://hh.ru/vacancy/122072001"
+  },
+  {
+    "title": "QA-Engineer/Тестировщик",
+    "company": "Технологии управления персоналом",
+    "salary": "80000",
+    "description": "Интернет магазин. Мобильное приложение google /apple. Кассы самообслуживания и мониторинг касс. Jira (Service Desk и управление проектами). Buildin и Confluence...",
+    "link": "https://hh.ru/vacancy/122059966"
+  },
+  {
+    "title": "Java-разработчик",
+    "company": "Лига Цифровой Экономики",
+    "salary": "",
+    "description": "Разрабатывать дополнительную функциональность для компонентов продукта. Прорабатывать решения по улучшению ETL интеграций. Поддерживать промышленную эксплуатацию разработанных решений. R&D, реализовыв...",
+    "link": "https://hh.ru/vacancy/122147014"
+  },
+  {
+    "title": "Python-разработчик",
+    "company": "Эвокарго",
+    "salary": "",
+    "description": "Evocargo создает транспорт будущего. Мы проектируем, конструируем и собираем автономные электро-грузовики, разрабатываем программное обеспечение беспилотных грузовиков и низкоуровневых компонентов. ",
+    "link": "https://hh.ru/vacancy/122070454"
+  },
+  {
+    "title": "Junior Backend-разработчик",
+    "company": "СОФИ И ПАРТНЕРЫ",
+    "salary": "90000",
+    "description": "Трехнедельная оплачиваемая стажировка под присмотром наставника. Работа над нашим основным продуктом - ИИ ассистент Софи по поиску работы. Комплексное решение задач...",
+    "link": "https://hh.ru/vacancy/122140325"
+  },
+  {
+    "title": "Тестировщик",
+    "company": "Ниармедик Ваш Доктор Рядом",
+    "salary": "",
+    "description": "Участие в разработке стратегии и КПЭ в части формирования и развития качества и клиентского опыта для экосистемы Доктор Рядом по...",
+    "link": "https://hh.ru/vacancy/121141208"
+  },
+  {
+    "title": "QA-инженер / ручной тестировщик",
+    "company": "ГИРУС",
+    "salary": "",
+    "description": "Тестировать распределённую систему, где важна не только стабильность, но и логика работы между компонентами. Проводить ручное тестирование — UI, REST API...",
+    "link": "https://hh.ru/vacancy/121959523"
+  },
+  {
+    "title": "Заместитель начальника инспекции Департамента аудита образования, науки и инноваций",
+    "company": "Счетная палата Российской Федерации",
+    "salary": "",
+    "description": "Участие в организации и проведении контрольных и экспертно-аналитических мероприятий. Разработка дизайна мероприятия; участие в организации и выполнении прикладных исследований...",
+    "link": "https://hh.ru/vacancy/121944267"
+  },
+  {
+    "title": "Старший консультант отдела бизнес-анализа",
+    "company": "Аэрофлот",
+    "salary": "325000",
+    "description": "Анализ и оценка бизнес-процессов, выявление проблем в сфере развития авиакомпаний Группы. Координация кросс-функциональных проектов по повышению эффективности деятельности...",
+    "link": "https://hh.ru/vacancy/122011928"
+  },
+  {
+    "title": "Python-разработчик",
+    "company": "Эрэмэйч Рус",
+    "salary": "120000",
+    "description": "Участие в проекте в роли Backend-разработчика <highlighttext>Python</highlighttext> разработчика. Разработка логики backend компонентов, взаимодействующих с frontend. Участие в планировании, оценке...",
+    "link": "https://hh.ru/vacancy/122104908"
+  },
+  {
+    "title": "Junior дата аналитик",
+    "company": "JMart",
+    "salary": "None",
+    "description": "Составление отчетов в PowerBI. Выполнение поручений от бухгалтерии по программе SQL. Мониторинг и анализ всех распределений средств по оплатам заказов. ",
+    "link": "https://hh.ru/vacancy/122127502"
+  },
+  {
+    "title": "Аналитик данных",
+    "company": "Айтиспортс",
+    "salary": "100000",
+    "description": "Работа с данными в Excel, Таблицах (сбор, сравнение, анализ, работа с макросами (VBA), формирование рейтингов по различным критериям, сводные таблицы). ",
+    "link": "https://hh.ru/vacancy/121720203"
+  },
+  {
+    "title": "Фуллстак девелопер",
+    "company": "Акматов А.Б.",
+    "salary": "50000",
+    "description": "От 2–3 лет в разработке IT-продуктов, желательно в сфере интеграции информационных систем (ИС) или решений для повышения эффективности...",
+    "link": "https://hh.ru/vacancy/121965075"
+  },
+  {
+    "title": "Backend-разработчик (junior/middle)",
+    "company": "Геоскан",
+    "salary": "",
+    "description": "Исправление возникающих ошибок в ПО, разработанном для ПАК Geoscan Arena. Работа с ПО серверной стойки: nginx, Stun/Turn серверы, ПО...",
+    "link": "https://hh.ru/vacancy/120171329"
+  },
+  {
+    "title": "Middle+ QA Specialist",
+    "company": "VELES.FINANCE",
+    "salary": "2500",
+    "description": "Разработка и выполнение тестовых стратегий и планов для обеспечения качества продукта. Написание и поддержка автоматизированных тестов (UI, API, Performance, Load...",
+    "link": "https://hh.ru/vacancy/122096440"
+  },
+  {
+    "title": "Стажер-разработчик",
+    "company": "Prime Source",
+    "salary": "150000",
+    "description": "Разработка, развитие и поддержка Аналитической системы.",
+    "link": "https://hh.ru/vacancy/121204000"
+  },
+  {
+    "title": "Frontend-разработчик (middle)",
+    "company": "ТЛ Групп",
+    "salary": "",
+    "description": "Разработка клиентской части web-приложений. Поддержка существующего фронтенда.",
+    "link": "https://hh.ru/vacancy/121505275"
+  }
+]
