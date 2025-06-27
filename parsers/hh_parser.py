@@ -15,9 +15,9 @@ class HHParser(BaseParser):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
 
-    def search(self, query: str, limit: int = 20) -> List[Dict]:
-        """Поиск вакансий на HH.ru"""
-        print(f"🔍 Поиск на HH.ru: {query}")
+    def search(self, query: str, limit: int = 20, city: str = '') -> List[Dict]:
+        """Поиск вакансий на HH.ru с фильтром по городу"""
+        print(f"🔍 Поиск на HH.ru: {query}" + (f" в городе {city}" if city else ""))
         vacancies = []
 
         try:
@@ -25,9 +25,13 @@ class HHParser(BaseParser):
             search_url = f'{self.base_url}/search/vacancy'
             params = {
                 'text': query,
-                'area': 1,  # Москва
                 'per_page': min(limit, 50)
             }
+
+            # ДОБАВИТЬ ОБРАБОТКУ ГОРОДА:
+            if city:
+                params['area'] = city
+                print(f"📍 Применен фильтр по городу ID: {city}")
 
             response = requests.get(search_url, headers=self.headers, params=params, timeout=10)
             response.raise_for_status()

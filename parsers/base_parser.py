@@ -2,7 +2,10 @@ from abc import ABC, abstractmethod
 from database.models import Vacancy, Session
 from typing import List, Dict
 
-
+@abstractmethod
+def search(self, query: str, limit: int = 20, city: str = '') -> List[Dict]:
+    """Поиск вакансий по запросу"""
+    pass
 class BaseParser(ABC):
     """Базовый класс для всех парсеров"""
 

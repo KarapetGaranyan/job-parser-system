@@ -20,9 +20,9 @@ class SuperJobParser(BaseParser):
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-    def search(self, query: str, limit: int = 20) -> List[Dict]:
-        """Поиск вакансий через SuperJob API"""
-        print(f"🔍 Поиск в SuperJob: {query}")
+    def search(self, query: str, limit: int = 20, city: str = '') -> List[Dict]:
+        """Поиск вакансий через SuperJob API с фильтром по городу"""
+        print(f"🔍 Поиск в SuperJob: {query}" + (f" в городе {city}" if city else ""))
         vacancies = []
         page = 0
         per_page = min(20, limit)
@@ -35,6 +35,29 @@ class SuperJobParser(BaseParser):
                     'count': per_page
                 }
 
+                # ДОБАВИТЬ ОБРАБОТКУ ГОРОДА:
+                if city:
+                    # Маппинг городов HH -> SuperJob (основные города)
+                    city_mapping = {
+                        '1': '4',  # Москва
+                        '2': '14',  # СПб
+                        '3': '16',  # Екатеринбург
+                        '4': '13',  # Новосибирск
+                        '88': '18',  # Казань
+                        '66': '24',  # Нижний Новгород
+                        '76': '22',  # Ростов-на-Дону
+                        '113': '20',  # Самара
+                        '99': '31',  # Уфа
+                        '1124': '166'  # Алматы
+                    }
+
+                    if city in city_mapping:
+                        params['town'] = city_mapping[city]
+                        print(f"📍 Применен фильтр по городу: HH {city} -> SJ {city_mapping[city]}")
+                    else:
+                        print(f"⚠️ Город {city} не поддерживается в SuperJob")
+
+                # Остальной код остается без изменений
                 response = requests.get(
                     self.api_url,
                     headers=self.headers,

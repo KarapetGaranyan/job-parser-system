@@ -65,9 +65,29 @@ def index():
                     <div class="card-body">
                         <form id="searchForm">
                             <div class="mb-3">
-                                <label for="vacancy" class="form-label">Название вакансии</label>
+                                <label for="vacancy" class="form-label">Название вакансии <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="vacancy" 
                                        placeholder="Например: Python разработчик" required>
+                                <div class="form-text">
+                                    Введите название профессии или ключевые слова для поиска
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="city" class="form-label">Город (необязательно)</label>
+                                <select class="form-select" id="city">
+                                    <option value="">Все города</option>
+                                    <option value="1">Москва</option>
+                                    <option value="2">Санкт-Петербург</option>
+                                    <option value="3">Екатеринбург</option>
+                                    <option value="4">Новосибирск</option>
+                                    <option value="88">Казань</option>
+                                    <option value="66">Нижний Новгород</option>
+                                    <option value="76">Ростов-на-Дону</option>
+                                    <option value="113">Самара</option>
+                                    <option value="99">Уфа</option>
+                                    <option value="1124">Алматы</option>
+                                </select>
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-primary" id="searchBtn">
@@ -473,6 +493,7 @@ def search_vacancies():
     try:
         data = request.json
         query = data.get('vacancy', '').strip()
+        city = data.get('city', '')
 
         if not query:
             return jsonify({'error': 'Не указано название вакансии'}), 400
@@ -492,7 +513,7 @@ def search_vacancies():
         # Поиск на HH.ru
         try:
             print("📊 Парсинг HH.ru...")
-            hh_vacancies = hh_parser.search(query, limit=50)
+            hh_vacancies = hh_parser.search(query, limit=50, city=city)
             results['vacancies'].extend(hh_vacancies)
             results['sources']['hh'] = {
                 'count': len(hh_vacancies),
@@ -510,7 +531,7 @@ def search_vacancies():
         # Поиск на SuperJob
         try:
             print("📊 Парсинг SuperJob...")
-            sj_vacancies = sj_parser.search(query, limit=50)
+            sj_vacancies = sj_parser.search(query, limit=50,city=city)
             results['vacancies'].extend(sj_vacancies)
             results['sources']['superjob'] = {
                 'count': len(sj_vacancies),
