@@ -86,5 +86,6 @@ class HHParser(BaseParser):
             'title': title,
             'link': link,
             'company': company,
-            'salary': salary
+            'salary': salary,
+            'source': 'hh'
         }

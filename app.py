@@ -69,10 +69,16 @@ def index():
                                 <input type="text" class="form-control" id="vacancy" 
                                        placeholder="Например: Python разработчик" required>
                             </div>
-                            <button type="submit" class="btn btn-primary" id="searchBtn">
-                                <span id="spinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
-                                Найти вакансии
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary" id="searchBtn">
+                                    <span id="spinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                    Найти вакансии
+                                </button>
+                                <button type="button" class="btn btn-danger" id="clearDbBtn">
+                                    <span id="clearSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                    🗑️ Очистить БД
+                                </button>
+                            </div>
                         </form>
 
                         <div id="results" class="mt-4" style="display: none;">
@@ -88,160 +94,362 @@ def index():
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchForm = document.getElementById('searchForm');
-        const vacancyInput = document.getElementById('vacancy');
-        const searchBtn = document.getElementById('searchBtn');
-        const spinner = document.getElementById('spinner');
-        const resultsDiv = document.getElementById('results');
-        const searchStatsDiv = document.getElementById('searchStats');
-        const vacanciesListDiv = document.getElementById('vacanciesList');
-        const errorAlert = document.getElementById('errorAlert');
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const vacancyInput = document.getElementById('vacancy');
+    const citySelect = document.getElementById('city');
+    const searchBtn = document.getElementById('searchBtn');
+    const spinner = document.getElementById('spinner');
+    const clearDbBtn = document.getElementById('clearDbBtn');  // ДОБАВЛЕНО
+    const clearSpinner = document.getElementById('clearSpinner');  // ДОБАВЛЕНО
+    const resultsDiv = document.getElementById('results');
+    const searchStatsDiv = document.getElementById('searchStats');
+    const vacanciesListDiv = document.getElementById('vacanciesList');
+    const errorAlert = document.getElementById('errorAlert');
 
-        searchForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
+    // ДОБАВЛЕН ОБРАБОТЧИК ОЧИСТКИ БД
+    clearDbBtn.addEventListener('click', async function() {
+        // Подтверждение действия
+        const confirmMessage = `⚠️ ВНИМАНИЕ! ⚠️
 
-            const vacancy = vacancyInput.value.trim();
-            if (!vacancy) {
-                showError('Введите название вакансии');
-                return;
+Вы уверены, что хотите удалить ВСЕ вакансии из базы данных?
+
+Это действие:
+- Удалит все сохраненные вакансии
+- Нельзя будет отменить
+- Очистит всю историю поиска
+
+Продолжить?`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Показываем загрузку
+        clearDbBtn.disabled = true;
+        clearSpinner.style.display = 'inline-block';
+        clearDbBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Очистка...';
+        hideError();
+        hideSuccess();
+
+        try {
+            console.log('🗑️ Начинаем очистку базы данных...');
+
+            const response = await fetch('/api/clear-db', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера: ${response.status} ${response.statusText}`);
             }
 
-            // Показываем загрузку
-            searchBtn.disabled = true;
-            spinner.style.display = 'inline-block';
-            hideError();
+            const data = await response.json();
+            console.log('✅ Результат очистки:', data);
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Показываем успешное сообщение
+            const message = data.deleted_count > 0 
+                ? `✅ База данных очищена! Удалено ${data.deleted_count} вакансий.`
+                : '✅ База данных уже была пуста.';
+            
+            showSuccess(message);
+            
+            // Скрываем результаты поиска если они были
             resultsDiv.style.display = 'none';
 
-            try {
-                console.log('🔍 Начинаем поиск:', vacancy);
+        } catch (error) {
+            console.error('❌ Ошибка очистки БД:', error);
+            showError('Ошибка очистки базы данных: ' + error.message);
+        } finally {
+            clearDbBtn.disabled = false;
+            clearSpinner.style.display = 'none';
+            clearDbBtn.innerHTML = '🗑️ Очистить БД';
+        }
+    });
 
-                const response = await fetch('/api/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ vacancy: vacancy })
-                });
+    // ОБРАБОТЧИК ФОРМЫ ПОИСКА (обновленный)
+    searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-                if (!response.ok) {
-                    throw new Error(`Ошибка сервера: ${response.status}`);
+        const vacancy = vacancyInput.value.trim();
+        const city = citySelect.value;
+        
+        if (!vacancy) {
+            showError('Введите название вакансии');
+            return;
+        }
+
+        // Показываем загрузку
+        searchBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        hideError();
+        hideSuccess();
+        resultsDiv.style.display = 'none';
+
+        try {
+            // Логирование с информацией о городе
+            const cityName = getCityName(city);
+            console.log('🔍 Начинаем поиск:', vacancy, cityName ? `в городе: ${cityName}` : '(все города)');
+
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    vacancy: vacancy,
+                    city: city
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Ошибка сервера: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('📊 Получены результаты:', data);
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            displayResults(data);
+
+        } catch (error) {
+            console.error('❌ Ошибка поиска:', error);
+            showError('Ошибка поиска: ' + error.message);
+        } finally {
+            searchBtn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+
+    // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ НАЗВАНИЯ ГОРОДА
+    function getCityName(cityId) {
+        const cities = {
+            '1': 'Москва',
+            '2': 'Санкт-Петербург',
+            '3': 'Екатеринбург',
+            '4': 'Новосибирск',
+            '88': 'Казань',
+            '66': 'Нижний Новгород',
+            '76': 'Ростов-на-Дону',
+            '113': 'Самара',
+            '99': 'Уфа',
+            '1124': 'Алматы',
+            '159': 'Минск',
+            '40': 'Тольятти',
+            '78': 'Барнаул',
+            '54': 'Волгоград',
+            '151': 'Воронеж',
+            '19': 'Иркутск',
+            '24': 'Йошкар-Ола',
+            '82': 'Кемерово',
+            '73': 'Киров',
+            '53': 'Краснодар',
+            '26': 'Красноярск',
+            '63': 'Курск'
+        };
+        return cities[cityId] || '';
+    }
+
+    // ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ
+    function displayResults(data) {
+        if (!data || !data.vacancies) {
+            showError('Получены некорректные данные');
+            return;
+        }
+
+        // Статистика с информацией о городе
+        let statsHtml = '<div class="row text-center mb-3">';
+        
+        const selectedCity = citySelect.value;
+        const cityName = getCityName(selectedCity);
+        const cityInfo = cityName ? ` в ${cityName}` : ' (все города)';
+        
+        statsHtml += `<div class="col-md-4">
+            <div class="alert alert-primary mb-0">
+                <strong>${data.total}</strong><br>
+                Всего найдено${cityInfo}
+            </div>
+        </div>`;
+
+        if (data.sources && data.sources.hh) {
+            const hhStatus = data.sources.hh.status === 'success' ? 'success' : 'danger';
+            statsHtml += `<div class="col-md-4">
+                <div class="alert alert-${hhStatus} mb-0">
+                    <strong>${data.sources.hh.count}</strong><br>
+                    HH.ru${cityInfo}
+                </div>
+            </div>`;
+        }
+
+        if (data.sources && data.sources.superjob) {
+            const sjStatus = data.sources.superjob.status === 'success' ? 'success' : 'danger';
+            statsHtml += `<div class="col-md-4">
+                <div class="alert alert-${sjStatus} mb-0">
+                    <strong>${data.sources.superjob.count}</strong><br>
+                    SuperJob${cityInfo}
+                </div>
+            </div>`;
+        }
+
+        statsHtml += '</div>';
+
+        // Добавляем информационное сообщение о выбранном городе
+        if (cityName) {
+            statsHtml += `<div class="alert alert-info">
+                <strong>📍 Поиск в городе:</strong> ${cityName}
+                <br><small>Чтобы искать по всем городам, выберите "Все города"</small>
+            </div>`;
+        }
+
+        searchStatsDiv.innerHTML = statsHtml;
+
+        // Список вакансий
+        let vacanciesHtml = '';
+
+        if (data.vacancies && data.vacancies.length > 0) {
+            data.vacancies.forEach(function(vacancy, index) {
+                const title = vacancy.title || 'Не указано';
+                const company = vacancy.company || 'Не указано';
+                const salary = vacancy.salary || 'Не указана';
+                const location = vacancy.location || 'Не указана';
+                const link = vacancy.link || '#';
+                let source = vacancy.source || 'unknown';
+
+                // Дополнительная проверка источника по ссылке
+                if (source === 'unknown' && link) {
+                    if (link.includes('hh.ru')) source = 'hh';
+                    else if (link.includes('superjob.ru')) source = 'superjob';
                 }
 
-                const data = await response.json();
-                console.log('📊 Получены результаты:', data);
+                let sourceClass = 'secondary';
+                let sourceName = 'НЕИЗВЕСТНО';
+                let cardClass = '';
 
-                if (data.error) {
-                    throw new Error(data.error);
+                if (source === 'hh') {
+                    sourceClass = 'success';
+                    sourceName = 'HH.RU';
+                    cardClass = 'source-hh';
+                } else if (source === 'superjob') {
+                    sourceClass = 'info';
+                    sourceName = 'SUPERJOB';
+                    cardClass = 'source-superjob';
+                } else {
+                    sourceClass = 'warning';
+                    sourceName = 'НЕИЗВЕСТНО';
                 }
 
-                displayResults(data);
-
-            } catch (error) {
-                console.error('❌ Ошибка поиска:', error);
-                showError('Ошибка поиска: ' + error.message);
-            } finally {
-                searchBtn.disabled = false;
-                spinner.style.display = 'none';
-            }
-        });
-
-        function displayResults(data) {
-            if (!data || !data.vacancies) {
-                showError('Получены некорректные данные');
-                return;
-            }
-
-            // Статистика
-            let statsHtml = '<div class="row text-center mb-3">';
-            statsHtml += `<div class="col-md-4"><div class="alert alert-primary mb-0"><strong>${data.total}</strong><br>Всего найдено</div></div>`;
-
-            if (data.sources.hh) {
-                const hhStatus = data.sources.hh.status === 'success' ? 'success' : 'danger';
-                statsHtml += `<div class="col-md-4"><div class="alert alert-${hhStatus} mb-0"><strong>${data.sources.hh.count}</strong><br>HH.ru</div></div>`;
-            }
-
-            if (data.sources.superjob) {
-                const sjStatus = data.sources.superjob.status === 'success' ? 'success' : 'danger';
-                statsHtml += `<div class="col-md-4"><div class="alert alert-${sjStatus} mb-0"><strong>${data.sources.superjob.count}</strong><br>SuperJob</div></div>`;
-            }
-
-            statsHtml += '</div>';
-
-            searchStatsDiv.innerHTML = statsHtml;
-
-            // Список вакансий
-            let vacanciesHtml = '';
-
-            if (data.vacancies.length > 0) {
-                data.vacancies.forEach(function(vacancy) {
-                    const title = vacancy.title || 'Не указано';
-                    const company = vacancy.company || 'Не указано';
-                    const salary = vacancy.salary || 'Не указана';
-                    const link = vacancy.link || '#';
-                    const source = vacancy.source || 'unknown';
-
-                    let sourceClass = 'secondary';
-                    let sourceName = 'UNKNOWN';
-                    let cardClass = '';
-
-                    if (source === 'hh') {
-                        sourceClass = 'success';
-                        sourceName = 'HH.RU';
-                        cardClass = 'source-hh';
-                    } else if (source === 'superjob') {
-                        sourceClass = 'info';
-                        sourceName = 'SUPERJOB';
-                        cardClass = 'source-superjob';
-                    }
-
-                    vacanciesHtml += `
-                        <div class="card mb-3 ${cardClass}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h5 class="card-title">${title}</h5>
-                                        <p class="card-text">
-                                            <strong>Компания:</strong> ${company}<br>
-                                            <strong>Зарплата:</strong> ${salary}
-                                        </p>
-                                    </div>
-                                    <div>
+                vacanciesHtml += `
+                    <div class="card mb-3 ${cardClass}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-light text-dark me-2">#${index + 1}</span>
                                         <span class="badge bg-${sourceClass}">${sourceName}</span>
                                     </div>
+                                    <h5 class="card-title">${title}</h5>
+                                    <p class="card-text">
+                                        <strong>Компания:</strong> ${company}<br>
+                                        <strong>Зарплата:</strong> ${salary}<br>
+                                        <strong>Местоположение:</strong> ${location}
+                                    </p>
                                 </div>
-                                <a href="${link}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                    🔗 Открыть вакансию
-                                </a>
                             </div>
+                            <a href="${link}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                🔗 Открыть вакансию
+                            </a>
                         </div>
-                    `;
-                });
-            } else {
-                vacanciesHtml = '<div class="alert alert-warning">Вакансии не найдены</div>';
+                    </div>
+                `;
+            });
+        } else {
+            const noResultsMessage = cityName 
+                ? `Вакансии в городе ${cityName} не найдены. Попробуйте другой город или выберите "Все города".`
+                : 'Вакансии не найдены';
+            vacanciesHtml = `<div class="alert alert-warning">${noResultsMessage}</div>`;
+        }
+
+        vacanciesListDiv.innerHTML = vacanciesHtml;
+        resultsDiv.style.display = 'block';
+        resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ФУНКЦИЯ ДЛЯ ПОКАЗА УСПЕШНЫХ СООБЩЕНИЙ
+    function showSuccess(message) {
+        let successAlert = document.getElementById('successAlert');
+        if (!successAlert) {
+            successAlert = document.createElement('div');
+            successAlert.id = 'successAlert';
+            successAlert.className = 'alert alert-success mt-3';
+            successAlert.style.display = 'none';
+            errorAlert.parentNode.insertBefore(successAlert, errorAlert.nextSibling);
+        }
+        
+        successAlert.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close" onclick="hideSuccess()"></button>
+            </div>
+        `;
+        successAlert.style.display = 'block';
+        
+        // Автоматически скрыть через 8 секунд
+        setTimeout(() => {
+            hideSuccess();
+        }, 8000);
+        
+        successAlert.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ФУНКЦИЯ ДЛЯ СКРЫТИЯ УСПЕШНЫХ СООБЩЕНИЙ
+    window.hideSuccess = function() {
+        const successAlert = document.getElementById('successAlert');
+        if (successAlert) {
+            successAlert.style.display = 'none';
+        }
+    }
+
+    // ФУНКЦИЯ ДЛЯ ПОКАЗА ОШИБОК
+    function showError(message) {
+        errorAlert.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1"><strong>❌ Ошибка:</strong> ${message}</div>
+                <button type="button" class="btn-close" onclick="hideError()"></button>
+            </div>
+        `;
+        errorAlert.style.display = 'block';
+        errorAlert.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ФУНКЦИЯ ДЛЯ СКРЫТИЯ ОШИБОК
+    window.hideError = function() {
+        errorAlert.style.display = 'none';
+    }
+
+    // Проверяем API при загрузке
+    fetch('/api/health')
+        .then(response => response.json())
+        .then(data => {
+            console.log('✅ API статус:', data);
+            if (data.status === 'healthy') {
+                console.log('🎉 Система готова к работе!');
             }
-
-            vacanciesListDiv.innerHTML = vacanciesHtml;
-            resultsDiv.style.display = 'block';
-            resultsDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function showError(message) {
-            errorAlert.textContent = message;
-            errorAlert.style.display = 'block';
-        }
-
-        function hideError() {
-            errorAlert.style.display = 'none';
-        }
-
-        // Проверяем API при загрузке
-        fetch('/api/health')
-            .then(response => response.json())
-            .then(data => console.log('✅ API статус:', data))
-            .catch(error => console.error('❌ API недоступен:', error));
-    });
-    </script>
+        })
+        .catch(error => {
+            console.error('❌ API недоступен:', error);
+            showError('API сервера недоступен. Проверьте подключение к серверу.');
+        });
+});
+</script>
 </body>
 </html>
     """
@@ -284,7 +492,7 @@ def search_vacancies():
         # Поиск на HH.ru
         try:
             print("📊 Парсинг HH.ru...")
-            hh_vacancies = hh_parser.search(query, limit=15)
+            hh_vacancies = hh_parser.search(query, limit=50)
             results['vacancies'].extend(hh_vacancies)
             results['sources']['hh'] = {
                 'count': len(hh_vacancies),
@@ -302,7 +510,7 @@ def search_vacancies():
         # Поиск на SuperJob
         try:
             print("📊 Парсинг SuperJob...")
-            sj_vacancies = sj_parser.search(query, limit=15)
+            sj_vacancies = sj_parser.search(query, limit=50)
             results['vacancies'].extend(sj_vacancies)
             results['sources']['superjob'] = {
                 'count': len(sj_vacancies),
@@ -391,16 +599,58 @@ def export_csv():
         return jsonify({'error': str(e)}), 500
 
 
-if __name__ == '__main__':
-    print("🚀 Запуск Job Parser System v2.0")
-    print("=" * 50)
-    print("🌐 Главная: http://localhost:5000")
-    print("📊 API: http://localhost:5000/api/health")
-    print("📋 Текст: http://localhost:5000/vacancies/text")
-    print("📥 CSV: http://localhost:5000/export/csv")
-    print("=" * 50)
-    print("📡 Парсеры: HH.ru + SuperJob")
-    print("💾 База данных: SQLite")
-    print("✅ Готов к работе!")
+@app.route('/api/clear-db', methods=['DELETE'])
+def clear_database():
+    """Полная очистка базы данных вакансий"""
+    try:
+        session = Session()
 
+        # Подсчитываем количество записей до удаления
+        count_before = session.query(Vacancy).count()
+
+        # Удаляем все записи
+        deleted_count = session.query(Vacancy).delete()
+        session.commit()
+
+        print(f"🗑️ База данных очищена! Удалено {deleted_count} вакансий")
+
+        session.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'База данных успешно очищена',
+            'deleted_count': deleted_count,
+            'count_before': count_before
+        })
+
+    except Exception as e:
+        print(f'💥 Ошибка очистки БД: {str(e)}')
+        return jsonify({
+            'error': f'Ошибка очистки базы данных: {str(e)}'
+        }), 500
+
+
+@app.route('/api/db-stats', methods=['GET'])
+def get_db_stats():
+    """Получение статистики базы данных"""
+    try:
+        session = Session()
+
+        total_count = session.query(Vacancy).count()
+        hh_count = session.query(Vacancy).filter_by(source='hh').count()
+        sj_count = session.query(Vacancy).filter_by(source='superjob').count()
+
+        session.close()
+
+        return jsonify({
+            'total_vacancies': total_count,
+            'hh_vacancies': hh_count,
+            'superjob_vacancies': sj_count
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    print("🌐 Главная: http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)

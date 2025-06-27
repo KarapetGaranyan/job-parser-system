@@ -92,5 +92,6 @@ class SuperJobParser(BaseParser):
             'title': obj.get('profession', 'Не указано'),
             'link': obj.get('link', ''),
             'company': obj.get('firm_name', 'Не указана'),
-            'salary': salary
+            'salary': salary,
+            'source': 'superjob'
         }
