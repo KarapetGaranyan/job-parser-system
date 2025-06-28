@@ -93,6 +93,12 @@ def index():
                         <div id="results" class="mt-4" style="display: none;">
                             <div id="searchStats" class="mb-3"></div>
                             <div id="vacanciesList"></div>
+                            
+                            <nav id="pagination" class="mt-4" style="display: none;">
+                            <div id="pageInfo" class="text-center mb-3 text-muted"></div>
+                            <ul class="pagination justify-content-center" id="paginationList">
+                            </ul>
+                        </nav>
                         </div>
 
                         <div id="errorAlert" class="alert alert-danger mt-3" style="display: none;"></div>
@@ -103,7 +109,11 @@ def index():
     </div>
 
     <script>
-document.addEventListener('DOMContentLoaded', function() {
+    let allVacancies = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const vacancyInput = document.getElementById('vacancy');
     const citySelect = document.getElementById('city');
@@ -243,16 +253,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ
     // ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ
+// ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ С ПАГИНАЦИЕЙ
 function displayResults(data) {
     if (!data || !data.vacancies) {
         showError('Получены некорректные данные');
         return;
     }
 
-    const city = document.getElementById('city').value.trim();  // ПРОСТО БЕРЕМ ЗНАЧЕНИЕ
+    // Сохраняем все вакансии
+    allVacancies = data.vacancies;
+    currentPage = 1;  // Сброс на первую страницу
+
+    const city = document.getElementById('city').value.trim();
     const cityInfo = city ? ` в ${city}` : ' (все города)';
 
-    // Статистика с информацией о городе
+    // Статистика
     let statsHtml = '<div class="row text-center mb-3">';
     
     statsHtml += `<div class="col-md-4">
@@ -284,7 +299,7 @@ function displayResults(data) {
 
     statsHtml += '</div>';
 
-    // Информация о городе (если указан)
+    // Информация о городе
     if (city) {
         statsHtml += `<div class="alert alert-info">
             <strong>📍 Поиск в городе:</strong> ${city}
@@ -292,13 +307,28 @@ function displayResults(data) {
         </div>`;
     }
 
-    searchStatsDiv.innerHTML = statsHtml;
+    document.getElementById('searchStats').innerHTML = statsHtml;
 
-    // Список вакансий
+    // Отображаем первую страницу
+    displayPage(1);
+    
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ФУНКЦИЯ ОТОБРАЖЕНИЯ КОНКРЕТНОЙ СТРАНИЦЫ
+function displayPage(page) {
+    currentPage = page;
+    
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageVacancies = allVacancies.slice(startIndex, endIndex);
+
     let vacanciesHtml = '';
 
-    if (data.vacancies && data.vacancies.length > 0) {
-        data.vacancies.forEach(function(vacancy, index) {
+    if (pageVacancies.length > 0) {
+        pageVacancies.forEach(function(vacancy, index) {
+            const globalIndex = startIndex + index + 1;  // Глобальный номер
             const title = vacancy.title || 'Не указано';
             const company = vacancy.company || 'Не указано';
             const salary = vacancy.salary || 'Не указана';
@@ -306,7 +336,7 @@ function displayResults(data) {
             const link = vacancy.link || '#';
             let source = vacancy.source || 'unknown';
 
-            // Дополнительная проверка источника по ссылке
+            // Проверка источника по ссылке
             if (source === 'unknown' && link) {
                 if (link.includes('hh.ru')) source = 'hh';
                 else if (link.includes('superjob.ru')) source = 'superjob';
@@ -335,7 +365,7 @@ function displayResults(data) {
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-2">
-                                    <span class="badge bg-light text-dark me-2">#${index + 1}</span>
+                                    <span class="badge bg-light text-dark me-2">#${globalIndex}</span>
                                     <span class="badge bg-${sourceClass}">${sourceName}</span>
                                 </div>
                                 <h5 class="card-title">${title}</h5>
@@ -354,15 +384,74 @@ function displayResults(data) {
             `;
         });
     } else {
-        const noResultsMessage = city 
-            ? `Вакансии в городе ${city} не найдены. Попробуйте другой город или оставьте поле пустым.`
-            : 'Вакансии не найдены';
-        vacanciesHtml = `<div class="alert alert-warning">${noResultsMessage}</div>`;
+        vacanciesHtml = '<div class="alert alert-warning">Вакансии не найдены</div>';
     }
 
-    vacanciesListDiv.innerHTML = vacanciesHtml;
-    resultsDiv.style.display = 'block';
-    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('vacanciesList').innerHTML = vacanciesHtml;
+    updatePagination();
+}
+
+// ФУНКЦИЯ ОБНОВЛЕНИЯ ПАГИНАЦИИ
+function updatePagination() {
+    const totalPages = Math.ceil(allVacancies.length / itemsPerPage);
+    const paginationNav = document.getElementById('pagination');
+    const paginationList = document.getElementById('paginationList');
+    const pageInfo = document.getElementById('pageInfo');
+
+    if (totalPages <= 1) {
+        paginationNav.style.display = 'none';
+        return;
+    }
+
+    // Информация о странице
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, allVacancies.length);
+    pageInfo.innerHTML = `Показано ${startItem}-${endItem} из ${allVacancies.length} вакансий`;
+
+    // Кнопки пагинации
+    let paginationHtml = '';
+
+    // Кнопка "Предыдущая"
+    if (currentPage > 1) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="goToPage(${currentPage - 1})">‹ Предыдущая</a>
+            </li>
+        `;
+    }
+
+    // Номера страниц (показываем максимум 5 страниц)
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+        const isActive = i === currentPage ? 'active' : '';
+        paginationHtml += `
+            <li class="page-item ${isActive}">
+                <a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>
+            </li>
+        `;
+    }
+
+    // Кнопка "Следующая"
+    if (currentPage < totalPages) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="goToPage(${currentPage + 1})">Следующая ›</a>
+            </li>
+        `;
+    }
+
+    paginationList.innerHTML = paginationHtml;
+    paginationNav.style.display = 'block';
+}
+
+// ФУНКЦИЯ ПЕРЕХОДА НА СТРАНИЦУ
+window.goToPage = function(page) {
+    if (page >= 1 && page <= Math.ceil(allVacancies.length / itemsPerPage)) {
+        displayPage(page);
+        document.getElementById('vacanciesList').scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
     // ФУНКЦИЯ ДЛЯ ПОКАЗА УСПЕШНЫХ СООБЩЕНИЙ
