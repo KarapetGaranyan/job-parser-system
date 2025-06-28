@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск вакансий - Job Parser{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">🔍 Поиск вакансий на HH.ru и SuperJob</h3>
+            </div>
+            <div class="card-body">
+                <form id="searchForm">
+                    <div class="mb-3">
+                        <label for="vacancy" class="form-label">Название вакансии <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="vacancy" 
+                               placeholder="Например: Python разработчик" required>
+                        <div class="form-text">
+                            Введите название профессии или ключевые слова для поиска
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="city" class="form-label">Город (необязательно)</label>
+                        <input type="text" class="form-control" id="city" 
+                               placeholder="Например: Москва">
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="searchBtn">
+                            <span id="spinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                            Найти вакансии
+                        </button>
+                        <button type="button" class="btn btn-danger" id="clearDbBtn">
+                            <span id="clearSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                            🗑️ Очистить БД
+                        </button>
+                    </div>
+                </form>
+
+                <div id="results" class="mt-4" style="display: none;">
+                    <div id="searchStats" class="mb-3"></div>
+                    <div id="vacanciesList"></div>
+
+                    <nav id="pagination" class="mt-4" style="display: none;">
+                        <div id="pageInfo" class="text-center mb-3 text-muted"></div>
+                        <ul class="pagination justify-content-center" id="paginationList"></ul>
+                    </nav>
+                </div>
+
+                <div id="errorAlert" class="alert alert-danger mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Все вакансии - Job Parser{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📋 Все вакансии</h2>
+    <div>
+        <a href="/export/csv" class="btn btn-success">📥 Скачать CSV</a>
+        <a href="/export/text" class="btn btn-info" target="_blank">📄 Текстовый вид</a>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <select id="sourceFilter" class="form-select">
+            <option value="">Все источники</option>
+            <option value="hh">HH.ru</option>
+            <option value="superjob">SuperJob</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <input type="text" id="companyFilter" class="form-control" placeholder="Фильтр по компании">
+    </div>
+</div>
+
+<div id="vacanciesList">
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+</div>
+
+<nav id="pagination" class="mt-4" style="display: none;"></nav>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vacancies.js') }}"></script>
+{% endblock %}

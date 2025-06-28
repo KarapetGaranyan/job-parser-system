@@ -1,0 +1,41 @@
+# Job Parser System - Requirements
+# Основные зависимости для системы парсинга вакансий
+
+# ========== WEB FRAMEWORK ==========
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# ========== DATABASE ==========
+SQLAlchemy==2.0.23
+
+# ========== HTTP REQUESTS & PARSING ==========
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# ========== ENVIRONMENT & CONFIG ==========
+python-dotenv==1.0.0
+
+# ========== TESTING ==========
+pytest==7.4.3
+pytest-mock==3.12.0
+
+# ========== DEVELOPMENT ==========
+# Для разработки и отладки (опционально)
+# flask-debugtoolbar==0.13.1
+
+# ========== PRODUCTION (опционально) ==========
+# Для продакшена можно добавить:
+# gunicorn==21.2.0
+# psycopg2-binary==2.9.7  # для PostgreSQL
+# PyMySQL==1.1.0         # для MySQL
+
+# ========== SYSTEM DEPENDENCIES ==========
+# Убедитесь что установлены системные пакеты:
+# - python3-dev
+# - build-essential (Linux)
+# - libxml2-dev libxslt1-dev (для lxml на Linux)
+
+# ========== PYTHON VERSION ==========
+# Требуется Python 3.8+
+# Протестировано на Python 3.8, 3.9, 3.10, 3.11

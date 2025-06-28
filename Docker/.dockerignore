@@ -1,0 +1,123 @@
+# Job Parser System - .dockerignore
+# Исключаем ненужные файлы из Docker образа
+
+# ========== СИСТЕМНЫЕ ФАЙЛЫ ==========
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========== GIT ==========
+.git/
+.gitignore
+.gitattributes
+
+# ========== PYTHON ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ========== ВИРТУАЛЬНЫЕ ОКРУЖЕНИЯ ==========
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# ========== IDE ==========
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ========== ДАННЫЕ И ЛОГИ ==========
+*.db
+*.sqlite
+*.sqlite3
+logs/
+*.log
+data/
+temp/
+tmp/
+
+# ========== DOCKER ==========
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# ========== ДОКУМЕНТАЦИЯ ==========
+README.md
+DOCKER_SETUP.md
+docs/
+*.md
+
+# ========== ТЕСТЫ ==========
+tests/
+test_*.py
+*_test.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ========== КОНФИГУРАЦИЯ ==========
+.env
+.env.*
+config.local.*
+*.conf.local
+
+# ========== РЕЗЕРВНЫЕ КОПИИ ==========
+*.bak
+*.backup
+*.old
+*.orig
+
+# ========== МЕДИА ==========
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.mp4
+*.avi
+
+# ========== ОПЕРАЦИОННАЯ СИСТЕМА ==========
+# Windows
+*.exe
+*.msi
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Linux
+*.AppImage
+*.deb
+*.rpm
+
+# ========== ЗАВИСИМОСТИ ==========
+node_modules/
+bower_components/
+
+# ========== ЛОКАЛЬНЫЕ ФАЙЛЫ ==========
+local/
+private/
+secrets/
