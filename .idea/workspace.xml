@@ -4,25 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="796fdb38-015b-48bb-93af-c02aed33cf61" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/job-parser-system.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/api_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/export_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/export_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/main_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/main_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/scheduler_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/scheduler_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/scheduler_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/scheduler_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/stats.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/stats.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/vacancies.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/vacancies.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/vacancies.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/vacancies.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vacancies.db" beforeDir="false" afterPath="$PROJECT_DIR$/vacancies.db" afterDir="false" />
-    </list>
+    <list default="true" id="796fdb38-015b-48bb-93af-c02aed33cf61" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
