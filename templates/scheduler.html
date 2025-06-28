@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+
+{% block title %}Планировщик - Job Parser{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">🕐 Автоматический поиск вакансий</h2>
+
+        <!-- Контрольная панель -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">⚙️ Управление</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-success" id="startSchedulerBtn">
+                                        <span id="startSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                        ▶️ Запустить планировщик
+                                    </button>
+                                    <button class="btn btn-danger" id="stopSchedulerBtn">
+                                        <span id="stopSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                        ⏹️ Остановить планировщик
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-info" id="refreshStatusBtn">
+                                        <span id="refreshSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                        🔄 Обновить статус
+                                    </button>
+                                    <button class="btn btn-outline-danger" id="clearAllJobsBtn">
+                                        <span id="clearAllSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                        🗑️ Очистить все задачи
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="schedulerStatus" class="alert alert-secondary">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Загрузка...</span>
+                                </div>
+                                <div class="mt-2">Проверка статуса...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Настройка поиска -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">🔍 Настройка автоматического поиска</h5>
+            </div>
+            <div class="card-body">
+                <form id="searchJobForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Ключевые слова для поиска <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="searchKeywords" rows="5"
+                                    placeholder="Python разработчик&#10;Frontend разработчик&#10;Data Scientist&#10;DevOps инженер&#10;Fullstack разработчик" required></textarea>
+                                <div class="form-text">Каждое ключевое слово с новой строки</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Интервал поиска (минуты) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="searchInterval"
+                                               min="1" step="1" value="120" required>
+                                        <div class="form-text">Рекомендуется: 60-180 минут</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Лимит вакансий</label>
+                                        <select class="form-select" id="searchLimit">
+                                            <option value="10">10 вакансий</option>
+                                            <option value="20" selected>20 вакансий</option>
+                                            <option value="30">30 вакансий</option>
+                                            <option value="50">50 вакансий</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Город (необязательно)</label>
+                                <input type="text" class="form-control" id="searchCity"
+                                       placeholder="Москва, Санкт-Петербург, Казань...">
+                                <div class="form-text">Оставьте пустым для поиска по всем городам</div>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="startImmediately">
+                                <label class="form-check-label">
+                                    Запустить поиск сразу после добавления
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <span id="addJobSpinner" class="spinner-border spinner-border-sm me-2" style="display: none;"></span>
+                                ➕ Настроить автопоиск
+                            </button>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h6>📋 Как это работает:</h6>
+                                <ul class="mb-0">
+                                    <li>Планировщик автоматически ищет вакансии по указанным ключевым словам</li>
+                                    <li>Поиск выполняется на HH.ru и SuperJob</li>
+                                    <li>Результаты сохраняются в базу данных</li>
+                                    <li>Можно настроить несколько разных задач поиска</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <h6>⚠️ Рекомендации:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Интервал:</strong> 60-180 минут (во избежание блокировки)</li>
+                                    <li><strong>Ключевые слова:</strong> Конкретные запросы</li>
+                                    <li><strong>Лимит:</strong> 20-30 вакансий оптимально</li>
+                                </ul>
+                            </div>
+
+                            <div class="alert alert-success">
+                                <h6>🚀 Быстрые настройки:</h6>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="setQuickSearch('python')">
+                                        🐍 Python разработка
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success btn-sm" onclick="setQuickSearch('frontend')">
+                                        🎨 Frontend разработка
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setQuickSearch('popular')">
+                                        ⭐ Популярные IT профессии
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Активные задачи поиска -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 Активные задачи поиска</h5>
+            </div>
+            <div class="card-body">
+                <div id="searchJobsList">
+                    <div class="text-center text-muted">
+                        Загрузка списка задач...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+class SchedulerManager {
+    constructor() {
+        this.statusCheckInterval = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.loadStatus();
+        this.startAutoRefresh();
+    }
+
+    bindEvents() {
+        document.getElementById('startSchedulerBtn').addEventListener('click', () => this.startScheduler());
+        document.getElementById('stopSchedulerBtn').addEventListener('click', () => this.stopScheduler());
+        document.getElementById('refreshStatusBtn').addEventListener('click', () => this.loadStatus());
+        document.getElementById('clearAllJobsBtn').addEventListener('click', () => this.clearAllJobs());
+        document.getElementById('searchJobForm').addEventListener('submit', (e) => this.addSearchJob(e));
+    }
+
+    async startScheduler() {
+        this.setButtonLoading('startSchedulerBtn', true);
+
+        try {
+            const response = await fetch('/api/scheduler/start', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            this.showMessage('✅ Планировщик запущен успешно', 'success');
+            setTimeout(() => this.loadStatus(), 1000);
+
+        } catch (error) {
+            this.showMessage('❌ Ошибка запуска: ' + error.message, 'danger');
+        } finally {
+            this.setButtonLoading('startSchedulerBtn', false);
+        }
+    }
+
+    async stopScheduler() {
+        if (!confirm('⚠️ Остановить планировщик? Все автоматические задачи поиска будут прекращены.')) return;
+
+        this.setButtonLoading('stopSchedulerBtn', true);
+
+        try {
+            const response = await fetch('/api/scheduler/stop', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            this.showMessage('⏹️ Планировщик остановлен', 'warning');
+            setTimeout(() => this.loadStatus(), 1000);
+
+        } catch (error) {
+            this.showMessage('❌ Ошибка остановки: ' + error.message, 'danger');
+        } finally {
+            this.setButtonLoading('stopSchedulerBtn', false);
+        }
+    }
+
+    async clearAllJobs() {
+        if (!confirm('⚠️ ВНИМАНИЕ! Удалить ВСЕ задачи планировщика?\n\nЭто действие нельзя отменить!')) return;
+
+        this.setButtonLoading('clearAllJobsBtn', true);
+
+        try {
+            const response = await fetch('/api/scheduler/clear-all-jobs', { method: 'DELETE' });
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            this.showMessage(`✅ Все задачи очищены. Удалено: ${data.deleted_count}`, 'warning');
+            setTimeout(() => this.loadStatus(), 1000);
+
+        } catch (error) {
+            this.showMessage('❌ Ошибка: ' + error.message, 'danger');
+        } finally {
+            this.setButtonLoading('clearAllJobsBtn', false);
+        }
+    }
+
+    async loadStatus() {
+        this.setButtonLoading('refreshStatusBtn', true);
+
+        try {
+            const response = await fetch('/api/scheduler/status');
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            this.displayStatus(data);
+            this.displayJobs(data.jobs || {});
+
+        } catch (error) {
+            this.showError('Ошибка загрузки статуса: ' + error.message);
+        } finally {
+            this.setButtonLoading('refreshStatusBtn', false);
+        }
+    }
+
+    async addSearchJob(e) {
+        e.preventDefault();
+
+        const keywords = document.getElementById('searchKeywords').value.trim();
+        const interval = parseInt(document.getElementById('searchInterval').value);
+        const city = document.getElementById('searchCity').value.trim();
+        const limit = parseInt(document.getElementById('searchLimit').value);
+        const startImmediately = document.getElementById('startImmediately').checked;
+
+        if (!keywords) {
+            this.showMessage('❌ Укажите ключевые слова для поиска', 'danger');
+            return;
+        }
+
+        if (interval < 1) {
+            this.showMessage('❌ Минимальный интервал: 1 минута', 'danger');
+            return;
+        }
+
+        this.setButtonLoading('addJobSpinner', true);
+
+        try {
+            const response = await fetch('/api/scheduler/add-search-job', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    keywords: keywords,
+                    interval_minutes: interval,
+                    city: city,
+                    limit: limit,
+                    run_immediately: startImmediately
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            this.showMessage(`✅ ${data.message}`, 'success');
+            document.getElementById('searchJobForm').reset();
+            document.getElementById('searchInterval').value = 120;
+            document.getElementById('searchLimit').value = 20;
+
+            setTimeout(() => this.loadStatus(), 1000);
+
+        } catch (error) {
+            this.showMessage('❌ Ошибка: ' + error.message, 'danger');
+        } finally {
+            this.setButtonLoading('addJobSpinner', false);
+        }
+    }
+
+    displayStatus(data) {
+        const container = document.getElementById('schedulerStatus');
+        const isRunning = data.running;
+        const jobsCount = Object.keys(data.jobs || {}).length;
+
+        const statusClass = isRunning ? 'alert-success' : 'alert-warning';
+        const statusIcon = isRunning ? '🟢' : '🔴';
+        const statusText = isRunning ? 'Работает' : 'Остановлен';
+
+        container.className = `alert ${statusClass}`;
+        container.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">${statusIcon} Статус: ${statusText}</h6>
+                    <small>Активных задач: ${jobsCount}</small>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Обновлено: ${new Date().toLocaleTimeString('ru-RU')}</small>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('startSchedulerBtn').disabled = isRunning;
+        document.getElementById('stopSchedulerBtn').disabled = !isRunning;
+    }
+
+    displayJobs(jobs) {
+        const container = document.getElementById('searchJobsList');
+        const allJobs = Object.entries(jobs);
+
+        if (allJobs.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted">
+                    <p>📭 Нет активных задач</p>
+                    <small>Настройте автоматический поиск используя форму выше</small>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="row">';
+
+        for (const [jobId, job] of allJobs) {
+            const nextRun = new Date(job.next_run).toLocaleString('ru-RU');
+            const lastRun = job.last_run !== 'Никогда' ? new Date(job.last_run).toLocaleString('ru-RU') : 'Никогда';
+
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">🔍 Автопоиск вакансий</h6>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-success btn-sm" onclick="runJobNow('${jobId}')" title="Запустить сейчас">
+                                        ▶️
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="removeJob('${jobId}')" title="Удалить">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="card-text small">
+                                <strong>ID:</strong> <code>${jobId}</code><br>
+                                <strong>Следующий поиск:</strong> ${nextRun}<br>
+                                <strong>Последний поиск:</strong> ${lastRun}<br>
+                                <strong>Интервал:</strong> ${job.interval_minutes} мин<br>
+                                <strong>Выполнено поисков:</strong> ${job.run_count}
+                            </p>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-primary" style="width: ${Math.min((job.run_count * 5), 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    setButtonLoading(buttonId, isLoading) {
+        const btn = document.getElementById(buttonId);
+        const spinnerId = buttonId.replace('Btn', 'Spinner');
+        const spinner = document.getElementById(spinnerId);
+
+        if (isLoading) {
+            btn.disabled = true;
+            if (spinner) spinner.style.display = 'inline-block';
+        } else {
+            btn.disabled = false;
+            if (spinner) spinner.style.display = 'none';
+        }
+    }
+
+    showMessage(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} position-fixed`;
+        toast.style.cssText = `
+            top: 20px; right: 20px; z-index: 9999; max-width: 400px;
+            opacity: 0; transition: opacity 0.3s ease;
+        `;
+        toast.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '1'; }, 10);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+        }, 5000);
+    }
+
+    showError(message) {
+        this.showMessage(message, 'danger');
+    }
+
+    startAutoRefresh() {
+        this.statusCheckInterval = setInterval(() => this.loadStatus(), 30000);
+    }
+
+    stopAutoRefresh() {
+        if (this.statusCheckInterval) clearInterval(this.statusCheckInterval);
+    }
+}
+
+// Быстрые настройки
+function setQuickSearch(type) {
+    const keywordsInput = document.getElementById('searchKeywords');
+    const intervalInput = document.getElementById('searchInterval');
+
+    let keywords = '';
+    let interval = 120;
+
+    if (type === 'python') {
+        keywords = 'Python разработчик\nDjango разработчик\nFlask разработчик\nFastAPI разработчик';
+        interval = 90;
+    } else if (type === 'frontend') {
+        keywords = 'Frontend разработчик\nReact разработчик\nVue разработчик\nJavaScript разработчик';
+        interval = 120;
+    } else if (type === 'popular') {
+        keywords = 'Python разработчик\nFrontend разработчик\nData Scientist\nDevOps инженер\nFullstack разработчик';
+        interval = 180;
+    }
+
+    keywordsInput.value = keywords;
+    intervalInput.value = interval;
+
+    schedulerManager.showMessage(`✅ Настройки "${type}" применены`, 'info');
+}
+
+// Глобальные функции
+async function runJobNow(jobId) {
+    try {
+        const response = await fetch(`/api/scheduler/run-job-now/${jobId}`, { method: 'POST' });
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        schedulerManager.showMessage(`✅ Поиск запущен!`, 'success');
+
+    } catch (error) {
+        schedulerManager.showMessage('❌ Ошибка: ' + error.message, 'danger');
+    }
+}
+
+async function removeJob(jobId) {
+    if (!confirm(`Удалить задачу "${jobId}"?`)) return;
+
+    try {
+        const response = await fetch(`/api/scheduler/remove-job/${jobId}`, { method: 'DELETE' });
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        schedulerManager.showMessage(`✅ Задача удалена`, 'success');
+        setTimeout(() => schedulerManager.loadStatus(), 1000);
+
+    } catch (error) {
+        schedulerManager.showMessage('❌ Ошибка: ' + error.message, 'danger');
+    }
+}
+
+// Инициализация
+let schedulerManager;
+document.addEventListener('DOMContentLoaded', function() {
+    schedulerManager = new SchedulerManager();
+});
+
+window.addEventListener('beforeunload', function() {
+    if (schedulerManager) schedulerManager.stopAutoRefresh();
+});
+</script>
+{% endblock %}

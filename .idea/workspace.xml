@@ -18,13 +18,25 @@
       </list>
     </option>
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.app1.executor&quot;: &quot;Run&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultHtmlFileTemplate": "HTML File",
+    "Python tests.Python tests in run_explained_tests.py.executor": "Run",
+    "Python tests.Python tests in test.py.executor": "Run",
+    "Python tests.Python tests in test1.py.executor": "Run",
+    "Python tests.Python tests in test_parsers_complete.py.executor": "Run",
+    "Python tests.Python tests in test_parsers_documented.py.executor": "Run",
+    "Python tests.Python tests in test_parsers_simple.py.executor": "Run",
+    "Python tests.Python tests in test_performance.py.executor": "Run",
+    "Python.app.executor": "Run",
+    "Python.app1.executor": "Run",
+    "Python.run_explained_tests.executor": "Run",
+    "Python.run_parsers_complete.executor": "Run",
+    "Python.run_parsers_test.executor": "Run",
+    "Python.run_pytest.executor": "Run",
+    "Python.test.executor": "Run"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Home-PC\PycharmProjects\job-parser-system" />

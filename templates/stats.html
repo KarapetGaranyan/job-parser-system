@@ -1,4 +1,4 @@
-stats_html = '''{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Статистика - Job Parser{% endblock %}
 
@@ -12,120 +12,8 @@ stats_html = '''{% extends "base.html" %}
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-async function loadStats() {
-    try {
-        const response = await fetch('/api/stats');
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
-        }
-        
-        displayStats(data);
-        
-    } catch (error) {
-        console.error('Ошибка загрузки статистики:', error);
-        document.getElementById('statsContainer').innerHTML = 
-            `<div class="alert alert-danger">Ошибка загрузки: ${error.message}</div>`;
-    }
-}
-
-function displayStats(stats) {
-    const container = document.getElementById('statsContainer');
-    
-    let html = `
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h1 class="card-title text-primary">${stats.total_vacancies}</h1>
-                        <p class="card-text">Всего вакансий в базе</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>По источникам</h5>
-                    </div>
-                    <div class="card-body">
-    `;
-    
-    for (const [source, count] of Object.entries(stats.by_source)) {
-        const percentage = ((count / stats.total_vacancies) * 100).toFixed(1);
-        html += `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span>${source.toUpperCase()}</span>
-                <span class="badge bg-primary">${count} (${percentage}%)</span>
-            </div>
-        `;
-    }
-    
-    html += `
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Топ компаний</h5>
-                    </div>
-                    <div class="card-body">
-    `;
-    
-    stats.top_companies.forEach(company => {
-        html += `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span>${company.name}</span>
-                <span class="badge bg-success">${company.count}</span>
-            </div>
-        `;
-    });
-    
-    html += `
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Топ локации</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-    `;
-    
-    stats.top_locations.forEach(location => {
-        html += `
-            <div class="col-md-6 mb-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>${location.name}</span>
-                    <span class="badge bg-info">${location.count}</span>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += `
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-}
-
-// Загружаем статистику при загрузке страницы
-loadStats();
-</script>
-{% endblock %}'''
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+{% endblock %}

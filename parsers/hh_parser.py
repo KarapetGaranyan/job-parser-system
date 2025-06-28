@@ -28,7 +28,6 @@ class HHParser(BaseParser):
                 'per_page': min(limit, 50)
             }
 
-            # ДОБАВИТЬ ОБРАБОТКУ ГОРОДА:
             if city:
                 params['text'] = f"{query} {city}"
                 print(f"📍 Поиск с городом: '{query} {city}'")
