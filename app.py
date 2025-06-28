@@ -75,19 +75,8 @@ def index():
                             
                             <div class="mb-3">
                                 <label for="city" class="form-label">Город (необязательно)</label>
-                                <select class="form-select" id="city">
-                                    <option value="">Все города</option>
-                                    <option value="1">Москва</option>
-                                    <option value="2">Санкт-Петербург</option>
-                                    <option value="3">Екатеринбург</option>
-                                    <option value="4">Новосибирск</option>
-                                    <option value="88">Казань</option>
-                                    <option value="66">Нижний Новгород</option>
-                                    <option value="76">Ростов-на-Дону</option>
-                                    <option value="113">Самара</option>
-                                    <option value="99">Уфа</option>
-                                    <option value="1124">Алматы</option>
-                                </select>
+                                <input type="text" class="form-control" id="city" 
+                                       placeholder="Например: Москва">
                             </div>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-primary" id="searchBtn">
@@ -198,13 +187,15 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
 
         const vacancy = vacancyInput.value.trim();
-        const city = citySelect.value;
+        const city = document.getElementById('city').value.trim();
         
         if (!vacancy) {
             showError('Введите название вакансии');
             return;
         }
-
+        
+        console.log('🔍 Поиск:', vacancy, city ? `в ${city}` : '(все города)');
+        
         // Показываем загрузку
         searchBtn.disabled = true;
         spinner.style.display = 'inline-block';
@@ -213,9 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsDiv.style.display = 'none';
 
         try {
-            // Логирование с информацией о городе
-            const cityName = getCityName(city);
-            console.log('🔍 Начинаем поиск:', vacancy, cityName ? `в городе: ${cityName}` : '(все города)');
+            // Простое логирование
+            console.log('🔍 Начинаем поиск:', vacancy, city ? `в городе: ${city}` : '(все города)');
 
             const response = await fetch('/api/search', {
                 method: 'POST',
@@ -250,158 +240,130 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ НАЗВАНИЯ ГОРОДА
-    function getCityName(cityId) {
-        const cities = {
-            '1': 'Москва',
-            '2': 'Санкт-Петербург',
-            '3': 'Екатеринбург',
-            '4': 'Новосибирск',
-            '88': 'Казань',
-            '66': 'Нижний Новгород',
-            '76': 'Ростов-на-Дону',
-            '113': 'Самара',
-            '99': 'Уфа',
-            '1124': 'Алматы',
-            '159': 'Минск',
-            '40': 'Тольятти',
-            '78': 'Барнаул',
-            '54': 'Волгоград',
-            '151': 'Воронеж',
-            '19': 'Иркутск',
-            '24': 'Йошкар-Ола',
-            '82': 'Кемерово',
-            '73': 'Киров',
-            '53': 'Краснодар',
-            '26': 'Красноярск',
-            '63': 'Курск'
-        };
-        return cities[cityId] || '';
+    
+    // ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ
+    // ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ
+function displayResults(data) {
+    if (!data || !data.vacancies) {
+        showError('Получены некорректные данные');
+        return;
     }
 
-    // ФУНКЦИЯ ОТОБРАЖЕНИЯ РЕЗУЛЬТАТОВ
-    function displayResults(data) {
-        if (!data || !data.vacancies) {
-            showError('Получены некорректные данные');
-            return;
-        }
+    const city = document.getElementById('city').value.trim();  // ПРОСТО БЕРЕМ ЗНАЧЕНИЕ
+    const cityInfo = city ? ` в ${city}` : ' (все города)';
 
-        // Статистика с информацией о городе
-        let statsHtml = '<div class="row text-center mb-3">';
-        
-        const selectedCity = citySelect.value;
-        const cityName = getCityName(selectedCity);
-        const cityInfo = cityName ? ` в ${cityName}` : ' (все города)';
-        
+    // Статистика с информацией о городе
+    let statsHtml = '<div class="row text-center mb-3">';
+    
+    statsHtml += `<div class="col-md-4">
+        <div class="alert alert-primary mb-0">
+            <strong>${data.total}</strong><br>
+            Всего найдено${cityInfo}
+        </div>
+    </div>`;
+
+    if (data.sources && data.sources.hh) {
+        const hhStatus = data.sources.hh.status === 'success' ? 'success' : 'danger';
         statsHtml += `<div class="col-md-4">
-            <div class="alert alert-primary mb-0">
-                <strong>${data.total}</strong><br>
-                Всего найдено${cityInfo}
+            <div class="alert alert-${hhStatus} mb-0">
+                <strong>${data.sources.hh.count}</strong><br>
+                HH.ru${cityInfo}
             </div>
         </div>`;
-
-        if (data.sources && data.sources.hh) {
-            const hhStatus = data.sources.hh.status === 'success' ? 'success' : 'danger';
-            statsHtml += `<div class="col-md-4">
-                <div class="alert alert-${hhStatus} mb-0">
-                    <strong>${data.sources.hh.count}</strong><br>
-                    HH.ru${cityInfo}
-                </div>
-            </div>`;
-        }
-
-        if (data.sources && data.sources.superjob) {
-            const sjStatus = data.sources.superjob.status === 'success' ? 'success' : 'danger';
-            statsHtml += `<div class="col-md-4">
-                <div class="alert alert-${sjStatus} mb-0">
-                    <strong>${data.sources.superjob.count}</strong><br>
-                    SuperJob${cityInfo}
-                </div>
-            </div>`;
-        }
-
-        statsHtml += '</div>';
-
-        // Добавляем информационное сообщение о выбранном городе
-        if (cityName) {
-            statsHtml += `<div class="alert alert-info">
-                <strong>📍 Поиск в городе:</strong> ${cityName}
-                <br><small>Чтобы искать по всем городам, выберите "Все города"</small>
-            </div>`;
-        }
-
-        searchStatsDiv.innerHTML = statsHtml;
-
-        // Список вакансий
-        let vacanciesHtml = '';
-
-        if (data.vacancies && data.vacancies.length > 0) {
-            data.vacancies.forEach(function(vacancy, index) {
-                const title = vacancy.title || 'Не указано';
-                const company = vacancy.company || 'Не указано';
-                const salary = vacancy.salary || 'Не указана';
-                const location = vacancy.location || 'Не указана';
-                const link = vacancy.link || '#';
-                let source = vacancy.source || 'unknown';
-
-                // Дополнительная проверка источника по ссылке
-                if (source === 'unknown' && link) {
-                    if (link.includes('hh.ru')) source = 'hh';
-                    else if (link.includes('superjob.ru')) source = 'superjob';
-                }
-
-                let sourceClass = 'secondary';
-                let sourceName = 'НЕИЗВЕСТНО';
-                let cardClass = '';
-
-                if (source === 'hh') {
-                    sourceClass = 'success';
-                    sourceName = 'HH.RU';
-                    cardClass = 'source-hh';
-                } else if (source === 'superjob') {
-                    sourceClass = 'info';
-                    sourceName = 'SUPERJOB';
-                    cardClass = 'source-superjob';
-                } else {
-                    sourceClass = 'warning';
-                    sourceName = 'НЕИЗВЕСТНО';
-                }
-
-                vacanciesHtml += `
-                    <div class="card mb-3 ${cardClass}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-light text-dark me-2">#${index + 1}</span>
-                                        <span class="badge bg-${sourceClass}">${sourceName}</span>
-                                    </div>
-                                    <h5 class="card-title">${title}</h5>
-                                    <p class="card-text">
-                                        <strong>Компания:</strong> ${company}<br>
-                                        <strong>Зарплата:</strong> ${salary}<br>
-                                        <strong>Местоположение:</strong> ${location}
-                                    </p>
-                                </div>
-                            </div>
-                            <a href="${link}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                🔗 Открыть вакансию
-                            </a>
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            const noResultsMessage = cityName 
-                ? `Вакансии в городе ${cityName} не найдены. Попробуйте другой город или выберите "Все города".`
-                : 'Вакансии не найдены';
-            vacanciesHtml = `<div class="alert alert-warning">${noResultsMessage}</div>`;
-        }
-
-        vacanciesListDiv.innerHTML = vacanciesHtml;
-        resultsDiv.style.display = 'block';
-        resultsDiv.scrollIntoView({ behavior: 'smooth' });
     }
+
+    if (data.sources && data.sources.superjob) {
+        const sjStatus = data.sources.superjob.status === 'success' ? 'success' : 'danger';
+        statsHtml += `<div class="col-md-4">
+            <div class="alert alert-${sjStatus} mb-0">
+                <strong>${data.sources.superjob.count}</strong><br>
+                SuperJob${cityInfo}
+            </div>
+        </div>`;
+    }
+
+    statsHtml += '</div>';
+
+    // Информация о городе (если указан)
+    if (city) {
+        statsHtml += `<div class="alert alert-info">
+            <strong>📍 Поиск в городе:</strong> ${city}
+            <br><small>Чтобы искать по всем городам, оставьте поле города пустым</small>
+        </div>`;
+    }
+
+    searchStatsDiv.innerHTML = statsHtml;
+
+    // Список вакансий
+    let vacanciesHtml = '';
+
+    if (data.vacancies && data.vacancies.length > 0) {
+        data.vacancies.forEach(function(vacancy, index) {
+            const title = vacancy.title || 'Не указано';
+            const company = vacancy.company || 'Не указано';
+            const salary = vacancy.salary || 'Не указана';
+            const location = vacancy.location || 'Не указана';
+            const link = vacancy.link || '#';
+            let source = vacancy.source || 'unknown';
+
+            // Дополнительная проверка источника по ссылке
+            if (source === 'unknown' && link) {
+                if (link.includes('hh.ru')) source = 'hh';
+                else if (link.includes('superjob.ru')) source = 'superjob';
+            }
+
+            let sourceClass = 'secondary';
+            let sourceName = 'НЕИЗВЕСТНО';
+            let cardClass = '';
+
+            if (source === 'hh') {
+                sourceClass = 'success';
+                sourceName = 'HH.RU';
+                cardClass = 'source-hh';
+            } else if (source === 'superjob') {
+                sourceClass = 'info';
+                sourceName = 'SUPERJOB';
+                cardClass = 'source-superjob';
+            } else {
+                sourceClass = 'warning';
+                sourceName = 'НЕИЗВЕСТНО';
+            }
+
+            vacanciesHtml += `
+                <div class="card mb-3 ${cardClass}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-light text-dark me-2">#${index + 1}</span>
+                                    <span class="badge bg-${sourceClass}">${sourceName}</span>
+                                </div>
+                                <h5 class="card-title">${title}</h5>
+                                <p class="card-text">
+                                    <strong>Компания:</strong> ${company}<br>
+                                    <strong>Зарплата:</strong> ${salary}<br>
+                                    <strong>Местоположение:</strong> ${location}
+                                </p>
+                            </div>
+                        </div>
+                        <a href="${link}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            🔗 Открыть вакансию
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        const noResultsMessage = city 
+            ? `Вакансии в городе ${city} не найдены. Попробуйте другой город или оставьте поле пустым.`
+            : 'Вакансии не найдены';
+        vacanciesHtml = `<div class="alert alert-warning">${noResultsMessage}</div>`;
+    }
+
+    vacanciesListDiv.innerHTML = vacanciesHtml;
+    resultsDiv.style.display = 'block';
+    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+}
 
     // ФУНКЦИЯ ДЛЯ ПОКАЗА УСПЕШНЫХ СООБЩЕНИЙ
     function showSuccess(message) {

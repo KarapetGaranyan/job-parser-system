@@ -30,8 +30,11 @@ class HHParser(BaseParser):
 
             # ДОБАВИТЬ ОБРАБОТКУ ГОРОДА:
             if city:
-                params['area'] = city
-                print(f"📍 Применен фильтр по городу ID: {city}")
+                params['text'] = f"{query} {city}"
+                print(f"📍 Поиск с городом: '{query} {city}'")
+            else:
+                params['text'] = query
+                print(f"🌍 Поиск без города: '{query}'")
 
             response = requests.get(search_url, headers=self.headers, params=params, timeout=10)
             response.raise_for_status()
