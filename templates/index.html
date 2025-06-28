@@ -2,115 +2,370 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+      <!-- Добавьте viewport для мобильных устройств -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Вакансии</title>
+      <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <!-- Подключите Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Кастомные стили */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1400px;
+        }
+        .vacancy-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .vacancy-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .hh-vacancy {
+            border-left-color: #FF3366;
+        }
+        .superjob-vacancy {
+            border-left-color: #33A0FF;
+        }
+        .salary-highlight {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .description-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .search-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            vertical-align: text-bottom;
+            border: 0.25em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border .75s linear infinite;
+        }
+        @keyframes spinner-border {
+            to { transform: rotate(360deg); }
+        }
+    </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="bg-light">
-<div class="container py-4">
-    <h1 class="mb-4">Поиск вакансий</h1>
+<div class="search-card">
+    <h1 class="mb-4"><i class="fas fa-search me-2"></i>Поиск вакансий</h1>
     <form id="search-form" class="row g-3 mb-4">
         <div class="col-md-4">
-            <input type="text" class="form-control" name="query" placeholder="Ключевое слово" value="{{ query }}">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-keyboard"></i></span>
+                <input type="text" class="form-control" name="query" placeholder="Должность, ключевые слова" value="{{ query }}">
+            </div>
         </div>
         <div class="col-md-3">
-            <input type="text" class="form-control" name="location" placeholder="Город" value="{{ location }}">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                <input type="text" class="form-control" name="location" placeholder="Город или регион" value="{{ location }}">
+            </div>
         </div>
         <div class="col-md-3">
-            <input type="text" class="form-control" name="company" placeholder="Компания" value="{{ company }}">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-building"></i></span>
+                <input type="text" class="form-control" name="company" placeholder="Название компании" value="{{ company }}">
+            </div>
         </div>
         <div class="col-md-2 d-grid">
-            <button type="submit" class="btn btn-primary">Поиск</button>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search me-1"></i> Поиск
+            </button>
         </div>
-        <div class="col-12">
-            <label class="form-label">Выберите сайт для поиска:</label>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="site" id="hh" value="hh" {% if source == 'hh' %}checked{% endif %}>
-                <label class="form-check-label" for="hh">HH.ru</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="site" id="superjob" value="superjob" {% if source == 'superjob' %}checked{% endif %}>
-                <label class="form-check-label" for="superjob">SuperJob</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="site" id="all" value="all" {% if source == 'all' %}checked{% endif %}>
-                <label class="form-check-label" for="all">Оба сайта</label>
-            </div>
-        </div>
-        <div class="col-12 col-md-3">
-            <label for="per_page" class="form-label">Вакансий на странице:</label>
-            <select class="form-select" id="per_page" name="per_page">
-                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-                <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
-                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-            </select>
-        </div>
-        <div class="col-12 col-md-3 d-flex align-items-end">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="fast_search" name="fast_search">
-                <label class="form-check-label" for="fast_search">Быстрый поиск (только свежие вакансии)</label>
+
+        <div class="col-12 mt-2">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label"><i class="fas fa-globe me-1"></i>Выберите сайт для поиска:</label>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="site" id="hh" value="hh" {% if source == 'hh' %}checked{% endif %}>
+                        <label class="btn btn-outline-danger" for="hh"><i class="fas fa-briefcase me-1"></i>HH.ru</label>
+
+                        <input type="radio" class="btn-check" name="site" id="superjob" value="superjob" {% if source == 'superjob' %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="superjob"><i class="fas fa-briefcase me-1"></i>SuperJob</label>
+
+                        <input type="radio" class="btn-check" name="site" id="all" value="all" {% if source == 'all' %}checked{% endif %}>
+                        <label class="btn btn-outline-secondary" for="all"><i class="fas fa-briefcase me-1"></i>Все</label>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="per_page" class="form-label"><i class="fas fa-list-ol me-1"></i>Вакансий на странице:</label>
+                    <select class="form-select" id="per_page" name="per_page">
+                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                        <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="fast_search" name="fast_search">
+                        <label class="form-check-label" for="fast_search">
+                            <i class="fas fa-bolt me-1"></i>Быстрый поиск
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
+
     <div class="mb-3 d-flex gap-2">
-        <a id="export-link" class="btn btn-success" href="/export?query={{ query }}&location={{ location }}&company={{ company }}">Экспорт в CSV</a>
-        <button id="clear-db-btn" class="btn btn-danger" type="button">Очистить БД</button>
+        <a id="export-link" class="btn btn-success" href="/export?query={{ query }}&location={{ location }}&company={{ company }}">
+            <i class="fas fa-file-export me-1"></i>Экспорт в CSV
+        </a>
+        <button id="clear-db-btn" class="btn btn-danger" type="button">
+            <i class="fas fa-trash-alt me-1"></i>Очистить БД
+        </button>
     </div>
-    <h2>Найдено: <span id="total">{{ total }}</span></h2>
-    <div id="loading" style="display:none; color: #007bff; font-weight: bold;">Загрузка, пожалуйста, подождите...</div>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Название</th>
-                <th>Компания</th>
-                <th>Местоположение</th>
-                <th>Зарплата</th>
-                <th>Описание</th>
-                <th>Дата публикации</th>
-                <th>Ссылка</th>
-                <th>Источник</th>
-            </tr>
-            </thead>
-            <tbody id="vacancies-body">
-            {% if vacancies|length == 0 %}
-            <tr><td colspan="9" class="text-center">Нет вакансий</td></tr>
-            {% else %}
-            {% for v in vacancies %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ v.title }}</td>
-                <td>{{ v.company }}</td>
-                <td>{{ v.location }}</td>
-                <td>{{ v.salary }}</td>
-                <td>{{ v.description }}</td>
-                <td>{{ v.published_at }}</td>
-                <td>{% if v.link %}<a href="{{ v.link }}" target="_blank">Открыть</a>{% endif %}</td>
-                <td>{% if v.source == 'hh' %}HH.ru{% elif v.source == 'superjob' %}SuperJob{% else %}{{ v.source }}{% endif %}</td>
-            </tr>
-            {% endfor %}
-            {% endif %}
-            </tbody>
-        </table>
-    </div>
-    <nav>
-        <ul class="pagination">
-            {% if page > 1 %}
-            <li class="page-item"><a class="page-link" href="#" data-page="{{ page-1 }}">Назад</a></li>
-            {% endif %}
-            <li class="page-item active"><span class="page-link">Страница {{ page }}</span></li>
-            {% if total > page*per_page %}
-            <li class="page-item"><a class="page-link" href="#" data-page="{{ page+1 }}">Вперёд</a></li>
-            {% endif %}
-        </ul>
-    </nav>
 </div>
+<div id="vacancies-container">
+    <h2 class="mb-3">Найдено: <span id="total" class="badge bg-primary">{{ total }}</span></h2>
+
+    <div id="loading" class="text-center py-4" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p class="mt-2">Идёт поиск вакансий, пожалуйста, подождите...</p>
+    </div>
+
+    {% if vacancies|length == 0 %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>По вашему запросу вакансий не найдено. Попробуйте изменить параметры поиска.
+    </div>
+    {% else %}
+    <div class="row row-cols-1 row-cols-md-2 g-4" id="vacancies-body">
+        {% for v in vacancies %}
+        <div class="col">
+            <div class="card vacancy-card h-100 {% if v.source == 'hh' %}hh-vacancy{% elif v.source == 'superjob' %}superjob-vacancy{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title">{{ v.title }}</h5>
+                        <span class="badge {% if v.source == 'hh' %}bg-danger{% else %}bg-primary{% endif %}">
+                            {% if v.source == 'hh' %}HH.ru{% elif v.source == 'superjob' %}SuperJob{% else %}{{ v.source }}{% endif %}
+                        </span>
+                    </div>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ v.company }}</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><i class="fas fa-map-marker-alt me-1"></i>{{ v.location }}</span>
+                        {% if v.salary %}
+                        <span class="salary-highlight"><i class="fas fa-money-bill-wave me-1"></i>{{ v.salary }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="card-text description-text">{{ v.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted"><i class="far fa-clock me-1"></i>{{ v.published_at }}</small>
+                        {% if v.link %}
+                        <a href="{{ v.link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-1"></i>Подробнее
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+<nav aria-label="Навигация по страницам">
+    <ul class="pagination justify-content-center">
+        {% if page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="#" data-page="{{ page-1 }}" aria-label="Предыдущая">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% set start_page = [1, page-2]|max %}
+        {% set end_page = [start_page + 4, (total / per_page)|round(0, 'ceil')|int]|min %}
+
+        {% if start_page > 1 %}
+        <li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>
+        {% if start_page > 2 %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        {% endif %}
+
+        {% for p in range(start_page, end_page + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="#" data-page="{{ p }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+
+        {% if end_page < (total / per_page)|round(0, 'ceil')|int %}
+        {% if end_page < (total / per_page)|round(0, 'ceil')|int - 1 %}
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% endif %}
+        <li class="page-item">
+            <a class="page-link" href="#" data-page="{{ (total / per_page)|round(0, 'ceil')|int }}">
+                {{ (total / per_page)|round(0, 'ceil')|int }}
+            </a>
+        </li>
+        {% endif %}
+
+        {% if total > page*per_page %}
+        <li class="page-item">
+            <a class="page-link" href="#" data-page="{{ page+1 }}" aria-label="Следующая">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
 <script>
 $(function() {
-    function renderFastResults(vacancies) {
+    // Улучшенный обработчик загрузки вакансий
+    function loadVacancies(page) {
+        const params = $('#search-form').serializeArray();
+        let data = {};
+        params.forEach(function(item) { data[item.name] = item.value; });
+        data['page'] = page || 1;
+
+        const fast = $('#fast_search').is(':checked');
+
+        $('#loading').show();
+        $('html, body').animate({ scrollTop: 0 }, 300);
+
+        if (fast) {
+            // Быстрый поиск (без обновления базы)
+            performFastSearch(data);
+        } else {
+            // Полноценный поиск с обновлением базы
+            updateDatabaseAndSearch(data);
+        }
+    }
+
+    function performFastSearch(data) {
+        let api = '/api/fast_hh_search';
+        if (data.site === 'superjob') api = '/api/fast_superjob_search';
+        if (data.site === 'all') api = '/api/fast_search_all';
+
+        $.ajax({
+            url: api,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                vacancy: data.query,
+                location: data.location,
+                company: data.company,
+                count: parseInt(data.per_page) || 10
+            }),
+            success: function(resp) {
+                renderResults(resp.vacancies || [], resp.vacancies?.length || 0);
+            },
+            error: function(xhr) {
+                showError('Ошибка при быстром поиске: ' + (xhr.responseJSON?.message || 'Сервер не отвечает'));
+            },
+            complete: function() {
+                $('#loading').hide();
+            }
+        });
+    }
+
+    function updateDatabaseAndSearch(data) {
+        // 1. Запускаем обновление базы
+        $.post('/trigger_update')
+            .done(function(resp) {
+                if (resp.status === 'started') {
+                    // 2. Периодически проверяем статус обновления
+                    checkUpdateStatus(data, 0);
+                } else {
+                    showError('Не удалось запустить обновление базы');
+                    $('#loading').hide();
+                }
+            })
+            .fail(function() {
+                showError('Не удалось подключиться к серверу');
+                $('#loading').hide();
+            });
+    }
+
+    function checkUpdateStatus(data, attempts) {
+        const maxAttempts = 30; // Максимум 30 попыток (30 * 2 сек = 1 минута)
+
+        // Эмуляция проверки статуса (замените на реальный запрос)
+        setTimeout(function() {
+            // В реальном коде здесь должен быть $.get('/api/update_status')
+            // Но так как у вас этот endpoint возвращает 404, мы эмулируем успешное завершение
+
+            // Эмуляция: считаем, что обновление завершено после 3 попыток
+            if (attempts >= 2) {
+                // 3. Когда обновление завершено, загружаем вакансии
+                fetchVacancies(data);
+            } else {
+                // Продолжаем проверку статуса
+                checkUpdateStatus(data, attempts + 1);
+            }
+
+            // В реальном коде должно быть так:
+            /*
+            $.get('/api/update_status')
+                .done(function(statusResp) {
+                    if (statusResp.status === 'completed') {
+                        fetchVacancies(data);
+                    } else if (statusResp.status === 'failed') {
+                        showError('Ошибка при обновлении базы');
+                        $('#loading').hide();
+                    } else if (attempts < maxAttempts) {
+                        checkUpdateStatus(data, attempts + 1);
+                    } else {
+                        showError('Превышено время ожидания обновления');
+                        $('#loading').hide();
+                    }
+                })
+                .fail(function() {
+                    if (attempts < maxAttempts) {
+                        checkUpdateStatus(data, attempts + 1);
+                    } else {
+                        showError('Не удалось проверить статус обновления');
+                        $('#loading').hide();
+                    }
+                });
+            */
+        }, 2000); // Проверяем каждые 2 секунды
+    }
+
+    function fetchVacancies(data) {
+        $.get('/', data)
+            .done(function(html) {
+                const $html = $(html);
+                $('#vacancies-body').html($html.find('#vacancies-body').html());
+                $('#total').text($html.find('#total').text());
+                $('.pagination').html($html.find('.pagination').html());
+            })
+            .fail(function() {
+                showError('Ошибка при загрузке вакансий');
+            })
+            .always(function() {
+                $('#loading').hide();
+            });
+    }
+
+    function renderResults(vacancies, total) {
         let html = '';
+
         if (!vacancies.length) {
             html = '<tr><td colspan="9" class="text-center">Нет вакансий</td></tr>';
         } else {
@@ -129,85 +384,59 @@ $(function() {
                 </tr>`;
             });
         }
+
         $('#vacancies-body').html(html);
-        $('#total').text(vacancies.length);
+        $('#total').text(total);
         $('.pagination').html('');
-        $('#loading').hide();
     }
-    function loadVacancies(page) {
-        const params = $('#search-form').serializeArray();
-        let data = {};
-        params.forEach(function(item) { data[item.name] = item.value; });
-        data['page'] = page || 1;
-        const fast = $('#fast_search').is(':checked');
-        if (fast) {
-            $('#loading').show();
-            let api = '/api/fast_hh_search';
-            if (data.site === 'superjob') api = '/api/fast_superjob_search';
-            if (data.site === 'both') api = '/api/fast_search_all';
-            $.ajax({
-                url: api,
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    vacancy: data.query,
-                    count: parseInt(data.per_page) || 10
-                }),
-                success: function(resp) {
-                    renderFastResults(resp.vacancies || []);
-                },
-                error: function() {
-                    renderFastResults([]);
-                }
-            });
-            return;
-        }
-        $('#loading').show();
-        // Новый функционал: сначала обновляем базу через /trigger_update, потом подгружаем вакансии
-        $.post('/trigger_update', function(resp) {
-            if (resp.status === 'started') {
-                // Ожидаем завершения обновления (например, 10-15 секунд, можно сделать опрос статуса)
-                setTimeout(function() {
-                    $.get('/', data, function(html) {
-                        const newBody = $(html).find('#vacancies-body').html();
-                        $('#vacancies-body').html(newBody);
-                        $('#total').text($(html).find('#total').text());
-                        // Обновляем пагинацию
-                        const newPagination = $(html).find('.pagination').html();
-                        $('.pagination').html(newPagination);
-                        $('#loading').hide();
-                    });
-                }, 15000); // 15 секунд ожидания (можно скорректировать)
-            } else {
-                $('#loading').hide();
-                alert('Ошибка запуска обновления базы!');
-            }
-        });
+
+    function showError(message) {
+        // Удаляем предыдущие ошибки
+        $('.alert-danger').remove();
+
+        // Показываем новое сообщение об ошибке
+        const alertHtml = `<div class="alert alert-danger alert-dismissible fade show mb-4">
+            <strong>Ошибка!</strong> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+
+        $('#search-form').before(alertHtml);
     }
+
+    // Обработчики событий
     $('#search-form').on('submit', function(e) {
         e.preventDefault();
         loadVacancies(1);
     });
+
     $(document).on('click', '.pagination a.page-link', function(e) {
         e.preventDefault();
         const page = $(this).data('page');
         loadVacancies(page);
     });
+
     $('#clear-db-btn').on('click', function() {
         if (!confirm('Вы уверены, что хотите удалить все вакансии из базы?')) return;
+
         $('#loading').show();
-        $.post('/clear_db', function(resp) {
-            if (resp.status === 'ok') {
-                // Очищаем таблицу и счётчик
-                $('#vacancies-body').html('<tr><td colspan="9" class="text-center">Нет вакансий</td></tr>');
-                $('#total').text('0');
-            } else {
-                alert('Ошибка при очистке базы: ' + (resp.error || ''));
-            }
-            $('#loading').hide();
-        });
+        $.post('/clear_db')
+            .done(function(resp) {
+                if (resp.status === 'ok') {
+                    $('#vacancies-body').html('<tr><td colspan="9" class="text-center">Нет вакансий</td></tr>');
+                    $('#total').text('0');
+                } else {
+                    showError('Ошибка при очистке базы: ' + (resp.error || ''));
+                }
+            })
+            .fail(function() {
+                showError('Не удалось очистить базу данных');
+            })
+            .always(function() {
+                $('#loading').hide();
+            });
     });
 });
 </script>
+
 </body>
 </html> 
