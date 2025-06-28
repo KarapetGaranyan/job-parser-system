@@ -39,19 +39,29 @@ class JobParserApp {
         this.hideSuccess();
 
         try {
+            // ИСПРАВЛЕНО: отправляем правильный параметр 'query' вместо 'vacancy'
             const response = await fetch('/api/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ vacancy, city })
+                body: JSON.stringify({
+                    query: vacancy,  // <- ИСПРАВЛЕНО: было 'vacancy', стало 'query'
+                    city: city,
+                    limit: 50
+                })
             });
 
             const data = await response.json();
-            
+
             if (data.error) {
                 throw new Error(data.error);
             }
 
-            this.displayResults(data);
+            // ИСПРАВЛЕНО: обрабатываем новую структуру ответа
+            if (data.success && data.results) {
+                this.displayResults(data.results);
+            } else {
+                throw new Error('Неверный формат ответа сервера');
+            }
 
         } catch (error) {
             console.error('❌ Ошибка поиска:', error);
@@ -69,14 +79,15 @@ class JobParserApp {
         this.showClearLoading(true);
 
         try {
-            const response = await fetch('/api/clear-db', { method: 'DELETE' });
+            // ИСПРАВЛЕНО: используем правильный endpoint
+            const response = await fetch('/api/clear', { method: 'POST' });
             const data = await response.json();
 
             if (data.error) {
                 throw new Error(data.error);
             }
 
-            const message = data.deleted_count > 0 
+            const message = data.deleted_count > 0
                 ? `✅ База данных очищена! Удалено ${data.deleted_count} вакансий.`
                 : '✅ База данных уже была пуста.';
 
@@ -92,7 +103,8 @@ class JobParserApp {
     }
 
     displayResults(data) {
-        this.allVacancies = data.vacancies;
+        // ИСПРАВЛЕНО: адаптируем под новую структуру данных
+        this.allVacancies = data.vacancies || [];
         this.currentPage = 1;
 
         this.displayStats(data);
@@ -105,42 +117,44 @@ class JobParserApp {
         const cityInfo = city ? ` в ${city}` : ' (все города)';
 
         let statsHtml = '<div class="row text-center mb-3">';
-        
+
         statsHtml += `<div class="col-md-4">
             <div class="alert alert-primary mb-0">
-                <strong>${data.total}</strong><br>
+                <strong>${data.total || 0}</strong><br>
                 Всего найдено${cityInfo}
             </div>
         </div>`;
 
-        if (data.sources?.hh) {
-            const hhStatus = data.sources.hh.status === 'success' ? 'success' : 'danger';
-            statsHtml += `<div class="col-md-4">
-                <div class="alert alert-${hhStatus} mb-0">
-                    <strong>${data.sources.hh.count}</strong><br>
-                    HH.ru${cityInfo}
-                </div>
-            </div>`;
-        }
+        // ИСПРАВЛЕНО: обработка статистики по источникам
+        if (data.sources) {
+            if (data.sources.hh) {
+                const hhStatus = data.sources.hh.status === 'success' ? 'success' : 'danger';
+                statsHtml += `<div class="col-md-4">
+                    <div class="alert alert-${hhStatus} mb-0">
+                        <strong>${data.sources.hh.count || 0}</strong><br>
+                        HH.ru${cityInfo}
+                    </div>
+                </div>`;
+            }
 
-        if (data.sources?.superjob) {
-            const sjStatus = data.sources.superjob.status === 'success' ? 'success' : 'danger';
-            statsHtml += `<div class="col-md-4">
-                <div class="alert alert-${sjStatus} mb-0">
-                    <strong>${data.sources.superjob.count}</strong><br>
-                    SuperJob${cityInfo}
-                </div>
-            </div>`;
+            if (data.sources.superjob) {
+                const sjStatus = data.sources.superjob.status === 'success' ? 'success' : 'danger';
+                statsHtml += `<div class="col-md-4">
+                    <div class="alert alert-${sjStatus} mb-0">
+                        <strong>${data.sources.superjob.count || 0}</strong><br>
+                        SuperJob${cityInfo}
+                    </div>
+                </div>`;
+            }
         }
 
         statsHtml += '</div>';
-
         document.getElementById('searchStats').innerHTML = statsHtml;
     }
 
     displayPage(page) {
         this.currentPage = page;
-        
+
         const startIndex = (page - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
         const pageVacancies = this.allVacancies.slice(startIndex, endIndex);
@@ -151,7 +165,7 @@ class JobParserApp {
 
     renderVacancies(vacancies, startIndex) {
         const container = document.getElementById('vacanciesList');
-        
+
         if (vacancies.length === 0) {
             container.innerHTML = '<div class="alert alert-warning">Вакансии не найдены</div>';
             return;
@@ -168,7 +182,7 @@ class JobParserApp {
 
     createVacancyCard(vacancy, index) {
         const { title, company, salary, location, link, source } = vacancy;
-        
+
         let sourceClass = 'secondary';
         let sourceName = 'НЕИЗВЕСТНО';
         let cardClass = '';
@@ -196,7 +210,7 @@ class JobParserApp {
                             <p class="card-text">
                                 <strong>Компания:</strong> ${company || 'Не указано'}<br>
                                 <strong>Зарплата:</strong> ${salary || 'Не указана'}<br>
-                                <strong>Местоположение:</strong> ${location || 'Не указана'}
+                                <strong>Местоположение:</strong> ${location || 'Не указано'}
                             </p>
                         </div>
                     </div>
@@ -211,7 +225,7 @@ class JobParserApp {
     updatePagination() {
         const totalPages = Math.ceil(this.allVacancies.length / this.itemsPerPage);
         const paginationNav = document.getElementById('pagination');
-        
+
         if (totalPages <= 1) {
             paginationNav.style.display = 'none';
             return;
@@ -220,7 +234,7 @@ class JobParserApp {
         const pageInfo = document.getElementById('pageInfo');
         const startItem = (this.currentPage - 1) * this.itemsPerPage + 1;
         const endItem = Math.min(this.currentPage * this.itemsPerPage, this.allVacancies.length);
-        
+
         pageInfo.innerHTML = `Показано ${startItem}-${endItem} из ${this.allVacancies.length} вакансий`;
 
         this.renderPaginationButtons(totalPages);
@@ -231,14 +245,12 @@ class JobParserApp {
         const paginationList = document.getElementById('paginationList');
         let html = '';
 
-        // Кнопка "Предыдущая"
         if (this.currentPage > 1) {
             html += `<li class="page-item">
                 <a class="page-link" href="#" onclick="app.goToPage(${this.currentPage - 1})">‹ Предыдущая</a>
             </li>`;
         }
 
-        // Номера страниц
         const startPage = Math.max(1, this.currentPage - 2);
         const endPage = Math.min(totalPages, this.currentPage + 2);
 
@@ -249,7 +261,6 @@ class JobParserApp {
             </li>`;
         }
 
-        // Кнопка "Следующая"
         if (this.currentPage < totalPages) {
             html += `<li class="page-item">
                 <a class="page-link" href="#" onclick="app.goToPage(${this.currentPage + 1})">Следующая ›</a>
@@ -267,34 +278,33 @@ class JobParserApp {
         }
     }
 
-    // Утилиты для UI
     showLoading(show) {
         const btn = document.getElementById('searchBtn');
         const spinner = document.getElementById('spinner');
-        
+
         if (show) {
             btn.disabled = true;
-            spinner.style.display = 'inline-block';
+            if (spinner) spinner.style.display = 'inline-block';
         } else {
             btn.disabled = false;
-            spinner.style.display = 'none';
+            if (spinner) spinner.style.display = 'none';
         }
     }
 
     showClearLoading(show) {
-    const btn = document.getElementById('clearDbBtn');
-    const spinner = document.getElementById('clearSpinner');
+        const btn = document.getElementById('clearDbBtn');
+        const spinner = document.getElementById('clearSpinner');
 
-    if (show) {
-        btn.disabled = true;
-        if (spinner) spinner.style.display = 'inline-block';
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Очистка...';
-    } else {
-        btn.disabled = false;
-        if (spinner) spinner.style.display = 'none';
-        btn.innerHTML = '🗑️ Очистить БД';
+        if (show) {
+            btn.disabled = true;
+            if (spinner) spinner.style.display = 'inline-block';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Очистка...';
+        } else {
+            btn.disabled = false;
+            if (spinner) spinner.style.display = 'none';
+            btn.innerHTML = '🗑️ Очистить БД';
+        }
     }
-}
 
     showError(message) {
         const alert = document.getElementById('errorAlert');
@@ -314,7 +324,8 @@ class JobParserApp {
             alert = document.createElement('div');
             alert.id = 'successAlert';
             alert.className = 'alert alert-success mt-3';
-            document.getElementById('errorAlert').parentNode.insertBefore(alert, document.getElementById('errorAlert').nextSibling);
+            const errorAlert = document.getElementById('errorAlert');
+            errorAlert.parentNode.insertBefore(alert, errorAlert.nextSibling);
         }
 
         alert.innerHTML = `
@@ -351,8 +362,8 @@ class JobParserApp {
         try {
             const response = await fetch('/api/health');
             const data = await response.json();
-            
-            if (data.status === 'healthy') {
+
+            if (data.status === 'ok') {
                 console.log('🎉 Система готова к работе!');
             }
         } catch (error) {

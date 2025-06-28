@@ -17,11 +17,14 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="/">🔍 Job Parser</a>
-                <div class="navbar-nav">
+                <div class="navbar-nav me-auto">
                     <a class="nav-link" href="/">Поиск</a>
                     <a class="nav-link" href="/vacancies">Вакансии</a>
                     <a class="nav-link" href="/stats">Статистика</a>
-                    <a class="nav-link" href="/scheduler">🕐 Планировщик</a>  <!-- ДОБАВИТЬ ЭТУ СТРОКУ -->
+                    <a class="nav-link" href="/scheduler">🕐 Планировщик</a>
+                    {% if session.user %}
+                        <a class="nav-link" href="/auth/profile">👤 Профиль</a>
+                    {% endif %}
                     <a class="nav-link" href="/api/vacancies">API</a>
                     <a class="nav-link" href="/export/text">Текст</a>
                     <a class="nav-link" href="/export/csv">CSV</a>
@@ -35,6 +38,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

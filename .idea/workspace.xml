@@ -4,7 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="796fdb38-015b-48bb-93af-c02aed33cf61" name="Changes" comment="" />
+    <list default="true" id="796fdb38-015b-48bb-93af-c02aed33cf61" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/job-parser-system.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/api_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api_routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/export_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/export_routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/main_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/main_routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/scheduler_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/routes/scheduler_routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/scheduler_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/scheduler_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/stats.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/stats.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/vacancies.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/vacancies.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/vacancies.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/vacancies.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vacancies.db" beforeDir="false" afterPath="$PROJECT_DIR$/vacancies.db" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,10 +31,22 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="2z8dYuoYRV4YebeoHv95QkKYsxA" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
@@ -28,13 +58,19 @@
     "Python tests.Python tests in test_parsers_documented.py.executor": "Run",
     "Python tests.Python tests in test_parsers_simple.py.executor": "Run",
     "Python tests.Python tests in test_performance.py.executor": "Run",
+    "Python.ap.executor": "Run",
     "Python.app.executor": "Run",
     "Python.app1.executor": "Run",
+    "Python.main_routes.executor": "Run",
+    "Python.routes.executor": "Run",
     "Python.run_explained_tests.executor": "Run",
     "Python.run_parsers_complete.executor": "Run",
     "Python.run_parsers_test.executor": "Run",
     "Python.run_pytest.executor": "Run",
-    "Python.test.executor": "Run"
+    "Python.test.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "feature"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -42,7 +78,22 @@
       <recent name="C:\Users\Home-PC\PycharmProjects\job-parser-system" />
     </key>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-337b0a7a993a-31b6be0877a2-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.19416.19" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="796fdb38-015b-48bb-93af-c02aed33cf61" name="Changes" comment="" />
+      <created>1751116692484</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1751116692484</updated>
+    </task>
     <servers />
   </component>
 </project>
