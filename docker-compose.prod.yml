@@ -1,0 +1,62 @@
+# Job Parser System - Production Docker Compose
+version: '3.8'
+
+services:
+  # Основное приложение Job Parser
+  jobparser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobparser-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      # Персистентное хранение данных
+      - jobparser_data:/app/data
+      - jobparser_logs:/app/logs
+    environment:
+      # Основные настройки
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-me}
+      - DEBUG=false
+
+      # База данных
+      - DATABASE_URL=sqlite:///data/vacancies.db
+
+      # SuperJob API (опционально)
+      - SUPERJOB_SECRET=${SUPERJOB_SECRET:-}
+
+      # Дополнительные настройки
+      - PYTHONUNBUFFERED=1
+      - TZ=Europe/Moscow
+
+    # Проверка здоровья
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Ограничения ресурсов
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+# Именованные тома для персистентности данных
+volumes:
+  jobparser_data:
+    driver: local
+  jobparser_logs:
+    driver: local
+
+# Сети для изоляции сервисов
+networks:
+  default:
+    name: jobparser-network 

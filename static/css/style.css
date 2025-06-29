@@ -148,3 +148,486 @@
     border-color: #bee5eb;
     color: #0c5460;
 }
+
+/* ===== ТЕМНАЯ КИБЕРПАНК ТЕМА ===== */
+
+/* Основные стили темной темы */
+[data-theme="cyberpunk"],
+.cyberpunk-theme {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #00ff41;
+    --text-secondary: #ffffff;
+    --text-muted: #888888;
+    --accent-primary: #ff006e;
+    --accent-secondary: #00ffff;
+    --border-color: #333333;
+    --shadow-color: rgba(0, 255, 65, 0.1);
+    --glow-color: rgba(0, 255, 65, 0.3);
+}
+
+/* Применение переменных к элементам */
+.cyberpunk-theme {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Анимированный фон */
+.cyberpunk-theme::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 0, 110, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0, 255, 255, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: cyberpunk-bg 20s ease-in-out infinite;
+}
+
+@keyframes cyberpunk-bg {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Навигационная панель */
+.cyberpunk-theme .navbar {
+    background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border-bottom: 2px solid var(--accent-primary);
+    box-shadow: 0 0 20px var(--shadow-color);
+    backdrop-filter: blur(10px);
+}
+
+.cyberpunk-theme .navbar-brand {
+    color: var(--text-primary) !important;
+    text-shadow: 0 0 10px var(--glow-color);
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.cyberpunk-theme .navbar-nav .nav-link {
+    color: var(--text-secondary) !important;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.cyberpunk-theme .navbar-nav .nav-link:hover {
+    color: var(--text-primary) !important;
+    text-shadow: 0 0 8px var(--glow-color);
+    transform: translateY(-2px);
+}
+
+.cyberpunk-theme .navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--accent-primary);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.cyberpunk-theme .navbar-nav .nav-link:hover::after {
+    width: 100%;
+}
+
+/* Кнопка переключения темы */
+.cyberpunk-theme .theme-toggle {
+    background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    color: var(--bg-primary);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.cyberpunk-theme .theme-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.cyberpunk-theme .theme-toggle:hover::before {
+    left: 100%;
+}
+
+.cyberpunk-theme .theme-toggle:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 25px var(--glow-color);
+}
+
+/* Карточки */
+.cyberpunk-theme .card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 20px var(--shadow-color);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyberpunk-theme .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.cyberpunk-theme .card:hover::before {
+    transform: scaleX(1);
+}
+
+.cyberpunk-theme .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px var(--glow-color);
+    border-color: var(--accent-primary);
+}
+
+.cyberpunk-theme .card-title {
+    color: var(--text-primary);
+    text-shadow: 0 0 5px var(--glow-color);
+    font-weight: bold;
+}
+
+.cyberpunk-theme .card-text {
+    color: var(--text-secondary);
+}
+
+/* Кнопки */
+.cyberpunk-theme .btn-primary {
+    background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    color: var(--bg-primary);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 20px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.cyberpunk-theme .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.cyberpunk-theme .btn-primary:hover::before {
+    left: 100%;
+}
+
+.cyberpunk-theme .btn-primary:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 25px var(--glow-color);
+}
+
+.cyberpunk-theme .btn-secondary {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--accent-secondary);
+    color: var(--accent-secondary);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px var(--shadow-color);
+}
+
+.cyberpunk-theme .btn-secondary:hover {
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px var(--glow-color);
+}
+
+/* Формы */
+.cyberpunk-theme .form-control,
+.cyberpunk-theme .form-select {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.cyberpunk-theme .form-control:focus,
+.cyberpunk-theme .form-select:focus {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 15px var(--glow-color);
+    color: var(--text-primary);
+}
+
+.cyberpunk-theme .form-label {
+    color: var(--text-primary);
+    font-weight: bold;
+    text-shadow: 0 0 5px var(--glow-color);
+}
+
+/* Таблицы */
+.cyberpunk-theme .table {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.cyberpunk-theme .table th {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    text-shadow: 0 0 5px var(--glow-color);
+    font-weight: bold;
+}
+
+.cyberpunk-theme .table td {
+    border-color: var(--border-color);
+}
+
+.cyberpunk-theme .table-hover tbody tr:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    box-shadow: 0 0 10px var(--shadow-color);
+}
+
+/* Уведомления */
+.cyberpunk-theme .alert {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    box-shadow: 0 0 15px var(--shadow-color);
+}
+
+.cyberpunk-theme .alert-primary {
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+
+.cyberpunk-theme .alert-success {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+}
+
+.cyberpunk-theme .alert-danger {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.cyberpunk-theme .alert-warning {
+    border-color: #ffaa00;
+    color: #ffaa00;
+}
+
+.cyberpunk-theme .alert-info {
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+
+/* Пагинация */
+.cyberpunk-theme .pagination .page-link {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.cyberpunk-theme .pagination .page-link:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: var(--bg-primary);
+    box-shadow: 0 0 10px var(--glow-color);
+}
+
+.cyberpunk-theme .pagination .page-item.active .page-link {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: var(--bg-primary);
+    box-shadow: 0 0 15px var(--glow-color);
+}
+
+/* Модальные окна */
+.cyberpunk-theme .modal-content {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    box-shadow: 0 0 30px var(--shadow-color);
+}
+
+.cyberpunk-theme .modal-header {
+    border-bottom-color: var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.cyberpunk-theme .modal-title {
+    color: var(--text-primary);
+    text-shadow: 0 0 5px var(--glow-color);
+}
+
+.cyberpunk-theme .modal-footer {
+    border-top-color: var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.cyberpunk-theme .btn-close {
+    filter: invert(1);
+}
+
+/* Бейджи */
+.cyberpunk-theme .badge {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 5px var(--glow-color);
+}
+
+/* Источники вакансий */
+.cyberpunk-theme .source-hh {
+    border-left-color: var(--text-primary);
+    box-shadow: 0 0 10px var(--glow-color);
+}
+
+.cyberpunk-theme .source-superjob {
+    border-left-color: var(--accent-secondary);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Анимации */
+@keyframes cyberpunk-glow {
+    0%, 100% { box-shadow: 0 0 5px var(--glow-color); }
+    50% { box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--glow-color); }
+}
+
+@keyframes cyberpunk-scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.cyberpunk-theme .card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+    animation: cyberpunk-scan 3s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cyberpunk-theme .card:hover::after {
+    opacity: 1;
+}
+
+/* Плавные переходы */
+.cyberpunk-theme * {
+    transition: all 0.3s ease;
+}
+
+/* Дополнительные эффекты */
+.cyberpunk-theme .container {
+    position: relative;
+}
+
+.cyberpunk-theme .container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, transparent 98%, var(--accent-primary) 100%),
+        linear-gradient(0deg, transparent 98%, var(--accent-primary) 100%);
+    pointer-events: none;
+    opacity: 0.1;
+    z-index: -1;
+}
+
+/* Адаптивность для темной темы */
+@media (max-width: 768px) {
+    .cyberpunk-theme .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .cyberpunk-theme .theme-toggle {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .cyberpunk-theme .card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Специальные эффекты для заголовков */
+.cyberpunk-theme h1, 
+.cyberpunk-theme h2, 
+.cyberpunk-theme h3, 
+.cyberpunk-theme h4, 
+.cyberpunk-theme h5, 
+.cyberpunk-theme h6 {
+    color: var(--text-primary);
+    text-shadow: 0 0 10px var(--glow-color);
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Эффект матрицы для фона */
+.cyberpunk-theme::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(90deg, transparent 98%, rgba(0, 255, 65, 0.1) 100%),
+        linear-gradient(0deg, transparent 98%, rgba(0, 255, 65, 0.1) 100%);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: -2;
+    opacity: 0.3;
+    animation: matrix-scroll 20s linear infinite;
+}
+
+@keyframes matrix-scroll {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(50px); }
+}
