@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Parser System - Презентация</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .presentation {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100vh;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            margin-bottom: 20px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .slide:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .slide h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInDown 1s ease;
+        }
+
+        .slide h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #2c3e50;
+            animation: slideInLeft 1s ease 0.2s both;
+        }
+
+        .slide h3 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .slide p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .tech-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .architecture-diagram {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        .architecture-layer {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .layer-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .layer-components {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .component {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .demo-screen {
+            width: 100%;
+            max-width: 800px;
+            background: #2c3e50;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-header {
+            background: #34495e;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px 10px 0 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .demo-content {
+            background: #2c3e50;
+            color: #00ff41;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #667eea;
+            transform: scale(1.2);
+        }
+
+        .nav-dot:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .cyberpunk-theme {
+            background: #0a0a0a;
+            color: #00ff41;
+        }
+
+        .cyberpunk-theme .slide {
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid #00ff41;
+        }
+
+        .cyberpunk-theme .feature-card {
+            background: #1a1a1a;
+            color: #00ff41;
+            border: 1px solid #ff006e;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide > * {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #ffeb3b, #ff9800);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 20px;
+            }
+
+            .slide h1 {
+                font-size: 2.5rem;
+            }
+
+            .slide h2 {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Киберпанк тема</button>
+
+    <div class="presentation">
+        <!-- Слайд 1: Титульный -->
+        <div class="slide" id="slide-1">
+            <div class="slide-number">1 / 8</div>
+            <h1>🔍 Job Parser System</h1>
+            <p style="font-size: 1.5rem; margin: 30px 0;">Автоматическая система поиска и парсинга вакансий</p>
+            <div class="tech-stack">
+                <span class="tech-badge">Python 3.11</span>
+                <span class="tech-badge">Flask</span>
+                <span class="tech-badge">SQLAlchemy</span>
+                <span class="tech-badge">Bootstrap 5</span>
+                <span class="tech-badge">Docker</span>
+            </div>
+            <p style="margin-top: 40px; font-size: 1.1rem; color: #666;">
+                <span class="emoji">🚀</span>Современное решение для HR и соискателей<br>
+                <span class="emoji">⚡</span>Высокая скорость и надежность<br>
+                <span class="emoji">🎨</span>Красивый интерфейс с темной темой
+            </p>
+            <div style="margin-top: 30px; background: rgba(102, 126, 234, 0.1); padding: 20px; border-radius: 15px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">👥 Команда разработки</h3>
+                <p style="font-size: 1rem; color: #555;">
+                    <strong>Царев Иван</strong> • <strong>Артем Лавров</strong> • <strong>Исроил Алиев</strong> • <strong>Гаранян Карапет</strong>
+                </p>
+                <p style="font-size: 0.9rem; color: #777; margin-top: 10px;">
+                    <span class="emoji">🔗</span>GitHub: <a href="https://github.com/KarapetGaranyan/job-parser-system" target="_blank" style="color: #667eea;">github.com/KarapetGaranyan/job-parser-system</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Слайд 2: Обзор проекта -->
+        <div class="slide" id="slide-2">
+            <div class="slide-number">2 / 8</div>
+            <h2>📋 Обзор проекта</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🔍</span>
+                    <h3>Умный поиск</h3>
+                    <p>Автоматический поиск вакансий на HH.ru и SuperJob с фильтрацией по городам</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🕐</span>
+                    <h3>Планировщик</h3>
+                    <p>Автоматический поиск по расписанию с настраиваемыми интервалами</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3>Аналитика</h3>
+                    <p>Детальная статистика по вакансиям, компаниям и источникам</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔐</span>
+                    <h3>Авторизация</h3>
+                    <p>Система пользователей с ролями admin/user/guest</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🌙</span>
+                    <h3>Темная тема</h3>
+                    <p>Киберпанк дизайн с анимациями и эффектами</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📤</span>
+                    <h3>Экспорт</h3>
+                    <p>Выгрузка данных в CSV и текстовый формат</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 3: Архитектура -->
+        <div class="slide" id="slide-3">
+            <div class="slide-number">3 / 8</div>
+            <h2>🏗️ Архитектура системы</h2>
+            <div class="architecture-diagram">
+                <div class="architecture-layer">
+                    <div>
+                        <div class="layer-title">Продакшен инфраструктура</div>
+                        <div class="layer-components">
+                            <span class="component">Nginx</span>
+                            <span class="component">PostgreSQL</span>
+                            <span class="component">Redis</span>
+                            <span class="component">Prometheus</span>
+                            <span class="component">Grafana</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="architecture-layer">
+                    <div>
+                        <div class="layer-title">Frontend</div>
+                        <div class="layer-components">
+                            <span class="component">HTML/CSS</span>
+                            <span class="component">JavaScript</span>
+                            <span class="component">Bootstrap 5</span>
+                            <span class="component">Темная тема</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="architecture-layer">
+                    <div>
+                        <div class="layer-title">API Routes</div>
+                        <div class="layer-components">
+                            <span class="component">Main Routes</span>
+                            <span class="component">API Routes</span>
+                            <span class="component">Scheduler Routes</span>
+                            <span class="component">Export Routes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="architecture-layer">
+                    <div>
+                        <div class="layer-title">Services</div>
+                        <div class="layer-components">
+                            <span class="component">Search Service</span>
+                            <span class="component">Scheduler Service</span>
+                            <span class="component">Vacancy Service</span>
+                            <span class="component">Stats Service</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="architecture-layer">
+                    <div>
+                        <div class="layer-title">Parsers</div>
+                        <div class="layer-components">
+                            <span class="component">HH.ru Parser</span>
+                            <span class="component">SuperJob API</span>
+                            <span class="component">Base Parser</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="architecture-layer">
+                    <div>
+                        <div class="layer-title">Data Layer</div>
+                        <div class="layer-components">
+                            <span class="component">SQLAlchemy</span>
+                            <span class="component">SQLite</span>
+                            <span class="component">JSON Storage</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 4: Технологии -->
+        <div class="slide" id="slide-4">
+            <div class="slide-number">4 / 8</div>
+            <h2>🛠️ Технологический стек</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🐍</span>
+                    <h3>Backend</h3>
+                    <p><strong>Python 3.11</strong> - современная версия<br>
+                    <strong>Flask</strong> - легковесный фреймворк<br>
+                    <strong>SQLAlchemy</strong> - ORM для работы с БД</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <h3>Frontend</h3>
+                    <p><strong>Bootstrap 5</strong> - адаптивная верстка<br>
+                    <strong>JavaScript ES6+</strong> - современный JS<br>
+                    <strong>CSS3</strong> - анимации и эффекты</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🗄️</span>
+                    <h3>Данные</h3>
+                    <p><strong>SQLite</strong> - встроенная БД<br>
+                    <strong>JSON</strong> - хранение настроек<br>
+                    <strong>CSV/TXT</strong> - экспорт данных</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🐳</span>
+                    <h3>Развертывание</h3>
+                    <p><strong>Docker</strong> - контейнеризация<br>
+                    <strong>PythonAnywhere</strong> - облачный хостинг<br>
+                    <strong>Nginx</strong> - веб-сервер</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 5: Ключевые возможности -->
+        <div class="slide" id="slide-5">
+            <div class="slide-number">5 / 8</div>
+            <h2>✨ Ключевые возможности</h2>
+            <div class="demo-screen">
+                <div class="demo-header">Job Parser System - Функциональность</div>
+                <div class="demo-content">
+🔍 <span class="highlight">Умный поиск вакансий</span>
+   • Поиск по ключевым словам
+   • Фильтрация по городам
+   • Дедупликация результатов
+   • Сохранение в базу данных
+
+🤖 <span class="highlight">Автоматический планировщик</span>
+   • Поиск по расписанию (каждые 60-180 минут)
+   • Множественные задачи поиска
+   • Настраиваемые ключевые слова
+   • Мониторинг выполнения
+
+📊 <span class="highlight">Аналитика и отчеты</span>
+   • Статистика по источникам
+   • Топ компаний и локаций
+   • Экспорт в CSV/TXT
+   • Интерактивные графики
+
+🔐 <span class="highlight">Система авторизации</span>
+   • Роли: admin/user/guest
+   • Ограничения по времени
+   • Панель администратора
+   • Управление пользователями
+
+🌙 <span class="highlight">Киберпанк интерфейс</span>
+   • Темная тема с неоновыми эффектами
+   • Анимации и переходы
+   • Адаптивный дизайн
+   • Горячие клавиши (Ctrl+T)
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 6: Статистика проекта -->
+        <div class="slide" id="slide-6">
+            <div class="slide-number">6 / 8</div>
+            <h2>📈 Статистика проекта</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">47</div>
+                    <div class="stat-label">Файлов кода</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2000+</div>
+                    <div class="stat-label">Строк кода</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">API эндпоинтов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Источника данных</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Сервисов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">HTML шаблонов</div>
+                </div>
+            </div>
+            <p style="margin-top: 30px; font-size: 1.1rem;">
+                <span class="emoji">🚀</span><strong>Готов к продакшену:</strong> Docker, документация, тесты<br>
+                <span class="emoji">⚡</span><strong>Высокая производительность:</strong> API-ориентированная архитектура<br>
+                <span class="emoji">🔧</span><strong>Легкое развертывание:</strong> Подробные инструкции для всех платформ
+            </p>
+        </div>
+
+        <!-- Слайд 7: Развертывание -->
+        <div class="slide" id="slide-7">
+            <div class="slide-number">7 / 8</div>
+            <h2>🚀 Варианты развертывания</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">💻</span>
+                    <h3>Локальная установка</h3>
+                    <p><strong>Простая настройка:</strong><br>
+                    pip install -r requirements.txt<br>
+                    python app.py</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🐳</span>
+                    <h3>Docker</h3>
+                    <p><strong>Один контейнер:</strong><br>
+                    docker build -t job-parser .<br>
+                    docker run -p 5000:5000 job-parser</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">☁️</span>
+                    <h3>PythonAnywhere</h3>
+                    <p><strong>Облачный хостинг:</strong><br>
+                    Детальная инструкция<br>
+                    Быстрый деплой за 5 минут</p>
+                </div>
+
+            </div>
+            <div class="demo-screen">
+                <div class="demo-header">Продакшен конфигурация (DOCKER_SETUP.md)</div>
+                <div class="demo-content">
+# Полный стек для продакшена
+<span class="highlight">🌐 Nginx</span>        - http://localhost:80   (веб-сервер)
+<span class="highlight">🗄️ PostgreSQL</span>  - localhost:5432       (база данных)
+<span class="highlight">🔄 Redis</span>        - localhost:6379       (кеширование)
+<span class="highlight">📊 Prometheus</span>   - http://localhost:9090 (мониторинг)
+<span class="highlight">📈 Grafana</span>      - http://localhost:3000 (дашборды)
+
+# Запуск всех сервисов
+docker-compose up -d
+
+# Мониторинг логов (PYTHONANYWHERE_DEPLOY.md)
+• Error log: ошибки приложения
+• Server log: серверные логи
+• Access log: запросы пользователей
+
+# Команда из GitHub
+git clone https://github.com/KarapetGaranyan/job-parser-system
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 8: Заключение -->
+        <div class="slide" id="slide-8">
+            <div class="slide-number">8 / 8</div>
+            <h1>🎯 Заключение</h1>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">✅</span>
+                    <h3>Достигнуто</h3>
+                    <p>• Полнофункциональная система поиска<br>
+                    • Автоматизация процессов<br>
+                    • Современный интерфейс<br>
+                    • Готовность к развертыванию</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔮</span>
+                    <h3>Будущее развитие</h3>
+                    <p>• Интеграция с новыми сайтами<br>
+                    • Машинное обучение<br>
+                    • Telegram бот<br>
+                    • Мобильное приложение</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; background: rgba(102, 126, 234, 0.1); padding: 25px; border-radius: 15px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">👥 Команда проекта</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="text-align: center;">
+                        <strong style="color: #2c3e50;">Царев Иван</strong><br>
+                        <small style="color: #666;">Backend Developer</small>
+                    </div>
+                    <div style="text-align: center;">
+                        <strong style="color: #2c3e50;">Артем Лавров</strong><br>
+                        <small style="color: #666;">Frontend Developer</small>
+                    </div>
+                    <div style="text-align: center;">
+                        <strong style="color: #2c3e50;">Исроил Алиев</strong><br>
+                        <small style="color: #666;">DevOps Engineer</small>
+                    </div>
+                    <div style="text-align: center;">
+                        <strong style="color: #2c3e50;">Гаранян Карапет</strong><br>
+                        <small style="color: #666;">Team Lead</small>
+                    </div>
+                </div>
+                <p style="text-align: center; margin: 0;">
+                    <a href="https://github.com/KarapetGaranyan/job-parser-system" target="_blank"
+                       style="color: #667eea; text-decoration: none; font-weight: 600;">
+                        🔗 github.com/KarapetGaranyan/job-parser-system
+                    </a>
+                </p>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center;">
+                <h2 style="color: #667eea; margin-bottom: 20px;">Спасибо за внимание! 🙏</h2>
+                <p style="font-size: 1.3rem; color: #666;">
+                    <span class="emoji">🌐</span>Система готова к использованию<br>
+                    <span class="emoji">📧</span>Контакты для сотрудничества<br>
+                    <span class="emoji">🚀</span>Готов к новым проектам
+                </p>
+                <div class="tech-stack" style="margin-top: 30px;">
+                    <span class="tech-badge">GitHub</span>
+                    <span class="tech-badge">Docker Hub</span>
+                    <span class="tech-badge">Документация</span>
+                    <span class="tech-badge">Поддержка</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <div class="nav-dot active" onclick="goToSlide(1)"></div>
+        <div class="nav-dot" onclick="goToSlide(2)"></div>
+        <div class="nav-dot" onclick="goToSlide(3)"></div>
+        <div class="nav-dot" onclick="goToSlide(4)"></div>
+        <div class="nav-dot" onclick="goToSlide(5)"></div>
+        <div class="nav-dot" onclick="goToSlide(6)"></div>
+        <div class="nav-dot" onclick="goToSlide(7)"></div>
+        <div class="nav-dot" onclick="goToSlide(8)"></div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 8;
+
+        function goToSlide(slideNumber) {
+            currentSlide = slideNumber;
+
+            // Обновляем активную точку навигации
+            document.querySelectorAll('.nav-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index + 1 === slideNumber);
+            });
+
+            // Прокручиваем к нужному слайду
+            document.getElementById(`slide-${slideNumber}`).scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Навигация с клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                if (currentSlide < totalSlides) {
+                    goToSlide(currentSlide + 1);
+                }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentSlide > 1) {
+                    goToSlide(currentSlide - 1);
+                }
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                goToSlide(1);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                goToSlide(totalSlides);
+            }
+        });
+
+        // Переключение темы
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+
+            body.classList.toggle('cyberpunk-theme');
+
+            if (body.classList.contains('cyberpunk-theme')) {
+                button.innerHTML = '☀️ Светлая тема';
+            } else {
+                button.innerHTML = '🌙 Киберпанк тема';
+            }
+        }
+
+        // Автоматическое обновление активного слайда при прокрутке
+        window.addEventListener('scroll', () => {
+            const slides = document.querySelectorAll('.slide');
+            const scrollTop = window.pageYOffset;
+
+            slides.forEach((slide, index) => {
+                const slideTop = slide.offsetTop;
+                const slideHeight = slide.offsetHeight;
+
+                if (scrollTop >= slideTop - slideHeight / 2 &&
+                    scrollTop < slideTop + slideHeight / 2) {
+                    if (currentSlide !== index + 1) {
+                        currentSlide = index + 1;
+                        document.querySelectorAll('.nav-dot').forEach((dot, dotIndex) => {
+                            dot.classList.toggle('active', dotIndex + 1 === currentSlide);
+                        });
+                    }
+                }
+            });
+        });
+
+        // Анимации при скролле
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .stat-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Job Parser System - Презентация загружена');
+            console.log('⌨️ Используйте стрелки или пробел для навигации');
+            console.log('🎨 Нажмите кнопку для переключения темы');
+        });
+    </script>
+</body>
+</html>
